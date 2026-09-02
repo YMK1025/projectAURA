@@ -33,9 +33,8 @@
 const { useState, useEffect } = React;
 
 /* =====================================================================
-   GAME DATA
+   ABILITIES
    ===================================================================== */
-
 const ABILITIES = {
   telekinesis: {
     name: '염동력', emoji: '🌀',
@@ -63,46 +62,60 @@ const ABILITIES = {
   }
 };
 
-/* 스탯 최댓값 */
 const MAX_STAT = 20;
 
-/* ---------------------------------------------------------------
+/* =====================================================================
    CHAPTERS
-   각 scene: { id, text, choices[] }
-   choice: { text, result, statChanges, next, tag?, req? }
-   next: 숫자(씬 인덱스) | 'chapter_end' | 'ending'
-   req: { stat:'power'|'control'|'mental', min:number }
-   --------------------------------------------------------------- */
+   choice fields:
+     text        - 버튼에 표시되는 텍스트
+     result      - 선택 후 플래시 메시지
+     statChanges - { power, control, mental } 변화량
+     next        - 씬 인덱스 | 'chapter_end' | 'ending'
+     tag?        - 엔딩 분기용 태그
+     req?        - { stat, min } 스탯 관문 (표시는 되나 잠김)
+     abilityReq? - 'telekinesis'|... 능력 전용 (다른 능력이면 숨김)
+   ===================================================================== */
 const CHAPTERS = [
+
   /* ===== CH1: 첫 번째 접촉 ===== */
   {
     id: 1, title: '첫 번째 접촉', subtitle: '세계의 균열',
     scenes: [
       {
         id: 0,
-        text: `2035년 서울. 도시는 오늘도 쉼 없이 돌아간다.\n\n당신은 출근길 지하철 안에 있다. 구겨진 서류를 들고 손잡이를 잡은 채 반쯤 졸고 있을 때였다.\n\n갑자기 열차가 멈춘다. 터널 한가운데서. 불이 깜박이고 스피커에서 잡음이 터져 나온다. 그 순간—\n\n머릿속에서 무언가가 '열린다'. 귀를 찢을 듯한 정적과 함께, 주변 모든 것이 선명하게, 아프도록 선명하게 보이기 시작한다. 옆 사람의 심장박동 소리까지 들리는 것 같다.\n\n그것이 시작이었다.`,
+        text: `2035년 서울. 도시는 오늘도 쉼 없이 돌아간다.\n\n당신은 출근길 지하철 안에 있다. 구겨진 서류를 들고 손잡이를 잡은 채 반쯤 졸고 있을 때였다.\n\n갑자기 열차가 멈춘다. 터널 한가운데서. 불이 깜박이고 스피커에서 잡음이 터져 나온다. 그 순간—\n\n머릿속에서 무언가가 '열린다'. 귀를 찢을 듯한 정적과 함께, 주변 모든 것이 선명하게, 아프도록 선명하게 보이기 시작한다.\n\n그것이 시작이었다.`,
         choices: [
+          /* 공통 선택지 */
           { text: '자신을 진정시키며 최대한 평범하게 행동한다', result: '흔들리는 마음을 억누르는 법을 익히기 시작했다.', statChanges: { control: 1 }, next: 1 },
           { text: '능력이 무엇인지 파악하려 의식을 집중한다', result: '혼돈 속에서도 냉정하게 자신을 관찰했다.', statChanges: { mental: 1 }, next: 1 },
-          { text: '넘치는 충동을 손을 꽉 쥐며 억제한다', result: '내면에서 끓어오르는 힘을 느꼈다.', statChanges: { power: 1 }, next: 1 }
+          { text: '넘치는 충동을 손을 꽉 쥐며 억제한다', result: '내면에서 끓어오르는 힘을 느꼈다.', statChanges: { power: 1 }, next: 1 },
+          /* 능력 전용 */
+          { text: '🌀 손잡이가 저절로 구부러진다 — 힘을 밀어낸다', result: '금속이 당신의 의지에 반응했다. 염동력이 처음으로 각성했다.', statChanges: { power: 2, control: 1 }, next: 1, abilityReq: 'telekinesis' },
+          { text: '👁️ 차량 너머 터널 전체가 투명하게 보인다 — 원인을 찾는다', result: '전기 계통 화재였다. 당신은 이미 알고 있었다. 투시가 열렸다.', statChanges: { mental: 2, control: 1 }, next: 1, abilityReq: 'clairvoyance' },
+          { text: '🧠 옆 사람들의 공황이 파도처럼 밀려온다 — 감정을 차단한다', result: '타인의 감정을 읽는 능력이 폭발적으로 열렸다.', statChanges: { mental: 2, control: 1 }, next: 1, abilityReq: 'mindControl' },
+          { text: '💠 온몸의 세포가 활성화되는 열기를 느낀다 — 흐름에 맡긴다', result: '부러진 손목이 30초 만에 나았다. 재생이 시작됐다.', statChanges: { power: 2, mental: 1 }, next: 1, abilityReq: 'regeneration' }
         ]
       },
       {
         id: 1,
-        text: `사무실로 돌아온 당신은 하루 종일 이상한 감각에 시달린다.\n\n동료가 말하기 전에 무슨 말을 할지 알 것 같고, 커피잔이 책상 끝에서 미끄러지기 직전에 손을 뻗게 된다. 마치 세계가 한 박자 앞서 보이는 것처럼.\n\n퇴근 무렵, 낯선 여자가 엘리베이터 앞에서 기다리고 있다. 짧은 머리카락, 날카로운 눈매. 그녀는 당신을 정면으로 바라보며 말한다.\n\n"각성하셨군요. 저희가 기다리고 있었습니다."\n\n손에 들린 명함에는 이렇게만 적혀 있다: **프로젝트 AURA**.`,
+        text: `사무실로 돌아온 당신은 하루 종일 이상한 감각에 시달린다.\n\n동료가 말하기 전에 무슨 말을 할지 알 것 같고, 커피잔이 책상 끝에서 미끄러지기 직전에 손을 뻗게 된다.\n\n퇴근 무렵, 낯선 여자가 엘리베이터 앞에서 기다리고 있다. 짧은 머리카락, 날카로운 눈매.\n\n"각성하셨군요. 저희가 기다리고 있었습니다."\n\n손에 들린 명함에는 이렇게만 적혀 있다: **프로젝트 AURA**.`,
         choices: [
           { text: '"저희가 누구죠?" — 침착하게 묻는다', result: '상황을 파악하려는 냉정함을 보였다.', statChanges: { mental: 1, control: 1 }, next: 2 },
           { text: '명함을 받으며 "이야기를 들어보겠습니다"', result: '신중하지만 열린 태도를 취했다.', statChanges: { control: 1 }, next: 2 },
-          { text: '"따라오세요" — 먼저 걷기 시작한다', result: '두려움 대신 호기심이 앞섰다.', statChanges: { power: 1, mental: 1 }, next: 2 }
+          { text: '"따라오세요" — 먼저 걷기 시작한다', result: '두려움 대신 호기심이 앞섰다.', statChanges: { power: 1, mental: 1 }, next: 2 },
+          /* 스탯 관문 */
+          { text: '"당신도 능력자입니까?" — 눈을 마주치며 읽어낸다', result: '지유의 눈빛이 잠깐 흔들렸다. 정보를 얻었다.', statChanges: { mental: 2, control: 1 }, next: 2, req: { stat: 'mental', min: 4 } }
         ]
       },
       {
         id: 2,
-        text: `그녀의 이름은 **지유(Ji-Yu)**. 프로젝트 AURA의 선임 요원이다.\n\n그녀가 이끄는 대로 따라간 곳은 을지로의 오래된 건물 지하. 겉보기엔 낡은 창고지만, 안으로 들어서자 깨끗한 복도와 최첨단 장비들이 모습을 드러낸다.\n\n"세상에는 두 종류의 사람이 있어요. 초능력이 없는 사람과, 각성하지 못한 사람. 당신은 방금 그 경계를 넘었습니다."\n\n지유는 당신에게 선택을 제안한다.\n\n"여기 머물며 능력을 배울 수도 있고, 지금 당장 나가서 혼자 이 능력을 감당할 수도 있어요. 단, 한번 알게 된 이상 — 당신은 이전으로 돌아갈 수 없습니다."`,
+        text: `그녀의 이름은 **지유(Ji-Yu)**. 프로젝트 AURA의 선임 요원이다.\n\n을지로의 오래된 건물 지하. 겉보기엔 낡은 창고지만, 안으로 들어서자 깨끗한 복도와 최첨단 장비들이 모습을 드러낸다.\n\n"세상에는 두 종류의 사람이 있어요. 초능력이 없는 사람과, 각성하지 못한 사람. 당신은 방금 그 경계를 넘었습니다."\n\n"여기 머물며 능력을 배울 수도 있고, 혼자 이 능력을 감당할 수도 있어요. 단, 한번 알게 된 이상 — 당신은 이전으로 돌아갈 수 없습니다."`,
         choices: [
           { text: '"합류하겠습니다. 가르쳐 주세요."', result: '조직의 일원이 되기로 결심했다.', statChanges: { control: 1, mental: 1 }, next: 'chapter_end' },
           { text: '"조직에 대해 더 알고 싶습니다. 정보를 보여주세요."', result: '신중한 판단으로 정보를 먼저 요구했다.', statChanges: { mental: 2 }, next: 'chapter_end' },
-          { text: '"...좋습니다. 해보죠." — 두 주먹을 쥔다', result: '각오를 다지며 새로운 세계에 발을 디뎠다.', statChanges: { power: 1, control: 1 }, next: 'chapter_end' }
+          { text: '"...좋습니다. 해보죠." — 두 주먹을 쥔다', result: '각오를 다지며 새로운 세계에 발을 디뎠다.', statChanges: { power: 1, control: 1 }, next: 'chapter_end' },
+          /* 스탯 관문: 컨트롤 4이상 */
+          { text: '"AURA의 성공률은 얼마입니까? — 실패한 요원은요?"', result: '지유가 잠시 멈췄다. "...그 질문을 하는 신입은 처음이네요."', statChanges: { mental: 2, control: 1 }, next: 'chapter_end', req: { stat: 'control', min: 4 } }
         ]
       }
     ]
@@ -114,29 +127,38 @@ const CHAPTERS = [
     scenes: [
       {
         id: 0,
-        text: `AURA 기지 지하 훈련실. 일주일이 지났다.\n\n"능력은 근육과 같습니다. 쓸수록 강해지지만, 제어하지 못하면 자신을 찢어버립니다."\n\n교관 **리온(Leon)**이 홀로그램 타깃 앞에 당신을 세워놓는다. 나이 마흔쯤 되어 보이는 그는 전직 군인 출신으로, 능력자 훈련을 10년 넘게 해왔다고 한다.\n\n"오늘은 한 가지만 물어보겠습니다. 당신은 강해지고 싶습니까, 아니면 안전하고 싶습니까?"`,
+        text: `AURA 기지 지하 훈련실. 일주일이 지났다.\n\n"능력은 근육과 같습니다. 쓸수록 강해지지만, 제어하지 못하면 자신을 찢어버립니다."\n\n교관 **리온(Leon)**이 홀로그램 타깃 앞에 당신을 세워놓는다. 나이 마흔쯤 되어 보이는 그는 전직 군인 출신으로, 능력자 훈련을 10년 넘게 해왔다.\n\n"오늘은 한 가지만 물어보겠습니다. 당신은 강해지고 싶습니까, 아니면 안전하고 싶습니까?"`,
         choices: [
           { text: '"강해져야 합니다. 한계까지 밀어붙이겠습니다."', result: '한계를 넘으려는 의지가 파워를 키웠지만, 제어력에 균열이 생겼다.', statChanges: { power: 2, control: -1 }, next: 1 },
           { text: '"안전이 먼저입니다. 제어력을 키우겠습니다."', result: '차분한 접근이 제어력과 정신력을 모두 강화했다.', statChanges: { control: 2, mental: 1 }, next: 1 },
-          { text: '"둘 다 필요합니다. 균형을 찾겠습니다."', result: '균형 잡힌 훈련으로 고르게 성장했다.', statChanges: { power: 1, control: 1, mental: 1 }, next: 1 }
+          { text: '"둘 다 필요합니다. 균형을 찾겠습니다."', result: '균형 잡힌 훈련으로 고르게 성장했다.', statChanges: { power: 1, control: 1, mental: 1 }, next: 1 },
+          /* 스탯 관문: 파워 5이상 */
+          { text: '"리온 교관, 직접 시연해 주십시오." — 한 수 배우겠다는 태도', result: '리온의 실력을 직접 보며 내면화했다. 날카로운 통찰.', statChanges: { control: 2, mental: 2 }, next: 1, req: { stat: 'power', min: 5 } }
         ]
       },
       {
         id: 1,
-        text: `훈련 3일째. 동기 요원 **민(Min)**이 말을 건다.\n\n"야, 너 진짜 빠르게 느는 것 같던데. 비결이 뭐야?"\n\n스물다섯의 민은 전기를 다루는 능력자다. 거친 말투 뒤로 순수한 열정이 보인다.\n\n그날 밤, 격리 훈련 중 예상치 못한 상황이 발생한다. 훈련용 드론 하나가 오작동을 일으켜 당신을 향해 돌진한다. 제어 시스템은 응답하지 않는다.\n\n0.3초 안에 반응해야 한다.`,
+        text: `훈련 3일째. 동기 요원 **민(Min)**이 말을 건다.\n\n"야, 너 진짜 빠르게 느는 것 같던데. 비결이 뭐야?"\n\n스물다섯의 민은 전기를 다루는 능력자다.\n\n그날 밤, 격리 훈련 중 예상치 못한 상황이 발생한다. 훈련용 드론 하나가 오작동을 일으켜 당신을 향해 돌진한다. 제어 시스템은 응답하지 않는다.\n\n0.3초 안에 반응해야 한다.`,
         choices: [
           { text: '능력을 최대로 방출해 드론을 격추한다', result: '날 것의 힘으로 위기를 돌파했다. 그러나 벽에 금이 갔다.', statChanges: { power: 2 }, next: 2, tag: 'power_use' },
           { text: '최소한의 힘으로 드론의 경로를 비껴 틀어버린다', result: '정밀한 제어로 드론을 무력화했다. 리온이 눈빛을 빛냈다.', statChanges: { control: 2 }, next: 2, tag: 'control_use' },
-          { text: '민에게 신호를 보내 함께 대응한다', result: '협력으로 위기를 넘겼다. 민과의 신뢰가 쌓였다.', statChanges: { mental: 2, control: 1 }, next: 2, tag: 'teamwork' }
+          { text: '민에게 신호를 보내 함께 대응한다', result: '협력으로 위기를 넘겼다. 민과의 신뢰가 쌓였다.', statChanges: { mental: 2, control: 1 }, next: 2, tag: 'teamwork' },
+          /* 능력 전용 */
+          { text: '🌀 드론을 공중에서 완전히 정지시킨다', result: '드론이 허공에 멈췄다. 훈련실 전체가 조용해졌다.', statChanges: { power: 2, control: 2 }, next: 2, abilityReq: 'telekinesis', req: { stat: 'power', min: 5 } },
+          { text: '👁️ 드론의 다음 이동 경로를 미리 읽어 피한다', result: '0.1초 뒤의 궤적이 보였다. 유유히 비켜섰다.', statChanges: { mental: 2, control: 2 }, next: 2, abilityReq: 'clairvoyance' },
+          { text: '🧠 드론 조종자의 패닉을 증폭해 시스템을 멈춘다', result: '원격 조종자가 갑자기 손을 놓았다. 원인을 모른 채.', statChanges: { mental: 3, control: 1 }, next: 2, abilityReq: 'mindControl' },
+          { text: '💠 정면으로 받아내며 충격을 흡수한다', result: '드론이 박살났다. 당신의 팔에는 찰과상도 없었다.', statChanges: { power: 3 }, next: 2, abilityReq: 'regeneration' }
         ]
       },
       {
         id: 2,
-        text: `"잘했습니다."\n\n리온이 훈련 종료 후 당신을 불러 세운다. 그의 표정에서 처음으로 무언가 부드러운 것이 보인다.\n\n"솔직히 말하죠. 신입 요원의 절반은 이 단계에서 포기합니다. 능력이 없어서가 아니라 — 자신이 두려워서요. 당신은 달라 보입니다."\n\n그는 파일 하나를 건넨다. 표지에는 '임무 지령서 1호'가 적혀 있다.\n\n"다음 주부터 현장에 나갑니다. 준비됐습니까?"`,
+        text: `"잘했습니다."\n\n리온이 훈련 종료 후 당신을 불러 세운다. 그의 표정에서 처음으로 무언가 부드러운 것이 보인다.\n\n"신입 요원의 절반은 이 단계에서 포기합니다. 능력이 없어서가 아니라 — 자신이 두려워서요. 당신은 달라 보입니다."\n\n그는 파일 하나를 건넨다. 표지에는 '임무 지령서 1호'가 적혀 있다.\n\n"다음 주부터 현장에 나갑니다. 준비됐습니까?"`,
         choices: [
           { text: '"준비됐습니다." — 파일을 펼친다', result: '자신감과 각오로 첫 임무를 받아들였다.', statChanges: { mental: 1, power: 1 }, next: 'chapter_end' },
           { text: '"한 가지 더 연습하게 해주십시오."', result: '완전한 준비를 위해 한 단계 더 나아갔다.', statChanges: { control: 2 }, next: 'chapter_end' },
-          { text: '"무슨 임무입니까?" — 파일 내용부터 확인한다', result: '신중하게 상황을 파악하며 나아갔다.', statChanges: { mental: 2 }, next: 'chapter_end' }
+          { text: '"무슨 임무입니까?" — 파일 내용부터 확인한다', result: '신중하게 상황을 파악하며 나아갔다.', statChanges: { mental: 2 }, next: 'chapter_end' },
+          /* 스탯 관문: 컨트롤 6이상 */
+          { text: '"이 임무, 제가 혼자 처리할 수 있습니까?"', result: '리온이 잠시 침묵했다. "...할 수 있을 것 같군요."', statChanges: { power: 1, mental: 2, control: 1 }, next: 'chapter_end', req: { stat: 'control', min: 6 } }
         ]
       }
     ]
@@ -148,20 +170,28 @@ const CHAPTERS = [
     scenes: [
       {
         id: 0,
-        text: `서울 마포구 일대에서 최근 3주 사이 17명이 사라졌다.\n\n공통점: 모두 초능력 각성자. 실종 전날 밤, 주변 사람들의 증언은 하나같이 일치했다. "그 사람이 갑자기 변한 것 같았어요. 눈빛이 달라졌다고 해야 하나."\n\n당신과 지유는 마지막 실종자의 집을 수색한다. 쓰러진 의자, 엎어진 커피잔. 그러나 투쟁의 흔적은 없다. 자발적으로 떠난 것처럼 보인다.\n\n그때 당신의 능력이 반응한다. 이 공간에 무언가가 남아 있다.`,
+        text: `서울 마포구 일대에서 최근 3주 사이 17명이 사라졌다.\n\n공통점: 모두 초능력 각성자. 실종 전날 밤, 주변 사람들의 증언은 하나같이 일치했다. "그 사람이 갑자기 변한 것 같았어요. 눈빛이 달라졌다고 해야 하나."\n\n당신과 지유는 마지막 실종자의 집을 수색한다. 쓰러진 의자, 엎어진 커피잔. 그러나 투쟁의 흔적은 없다.\n\n그때 당신의 능력이 반응한다. 이 공간에 무언가가 남아 있다.`,
         choices: [
-          { text: '능력을 깊게 집중해 공간의 잔상을 읽어낸다', result: '희미한 기억의 파편들이 흘러 들어왔다. 누군가가 여기 있었다.', statChanges: { mental: 1, control: 1 }, next: 1, tag: 'investigate' },
-          { text: '힘으로 숨겨진 물건을 찾아낸다', result: '벽 뒤에서 작은 통신 기기를 발견했다.', statChanges: { power: 1 }, next: 1, tag: 'power_search' },
-          { text: '지유에게 먼저 상황을 공유하며 함께 분석한다', result: '지유의 경험과 당신의 감각이 조각들을 맞춰나갔다.', statChanges: { mental: 2 }, next: 1, tag: 'teamwork' }
+          { text: '능력을 깊게 집중해 공간의 잔상을 읽어낸다', result: '희미한 기억의 파편들이 흘러 들어왔다.', statChanges: { mental: 1, control: 1 }, next: 1, tag: 'investigate' },
+          { text: '지유에게 먼저 상황을 공유하며 함께 분석한다', result: '지유의 경험과 당신의 감각이 조각들을 맞춰나갔다.', statChanges: { mental: 2 }, next: 1, tag: 'teamwork' },
+          /* 능력 전용 */
+          { text: '🌀 방 안의 물건들을 동시에 들어올려 숨겨진 것을 찾는다', result: '벽 뒤 공간에서 소형 발신기가 떨어졌다.', statChanges: { power: 1, control: 2 }, next: 1, abilityReq: 'telekinesis' },
+          { text: '👁️ 벽 너머까지 투시해 건물 전체를 스캔한다', result: '옆집 천장 속에 감시 장비가 설치되어 있었다.', statChanges: { mental: 3, control: 1 }, next: 1, abilityReq: 'clairvoyance' },
+          { text: '🧠 공간에 남은 감정의 잔향을 읽는다', result: '"두려움이 아니었다. 안도감이었어." 자발적 동행이었다.', statChanges: { mental: 3 }, next: 1, abilityReq: 'mindControl' },
+          { text: '💠 냄새와 촉각이 예민해져 최근 발자국 흔적을 추적한다', result: '세 사람의 발자국. 실종자는 혼자가 아니었다.', statChanges: { power: 1, mental: 2 }, next: 1, abilityReq: 'regeneration' }
         ]
       },
       {
         id: 1,
-        text: `단서를 추적한 끝에 당신들은 한강변 폐창고에 도달한다.\n\n안에서 빛이 새어 나온다. 창고 내부는 마치 제의 장소처럼 꾸며져 있다. 그 중심에 로브를 걸친 남자가 서 있다.\n\n**오라클(Oracle)**이라고 불리는 자. AURA 데이터베이스에 따르면, 초능력자들을 세뇌해 자신의 집단으로 끌어들이는 정신조작 능력자다.\n\n"왔군요." 그의 목소리는 기이하게 울린다. "당신도 갇혀 있는 건 마찬가지예요. AURA라는 새장 안에."`,
+        text: `단서를 추적한 끝에 당신들은 한강변 폐창고에 도달한다.\n\n안에서 빛이 새어 나온다. 창고 내부는 마치 제의 장소처럼 꾸며져 있다. 그 중심에 로브를 걸친 남자가 서 있다.\n\n**오라클(Oracle)**이라고 불리는 자. 초능력자들을 세뇌해 자신의 집단으로 끌어들이는 정신조작 능력자다.\n\n"왔군요." 그의 목소리는 기이하게 울린다. "당신도 갇혀 있는 건 마찬가지예요. AURA라는 새장 안에."`,
         choices: [
           { text: '"거짓말은 통하지 않습니다." — 능력을 발동한다', result: '단호한 의지로 그의 말에 흔들리지 않았다.', statChanges: { power: 1, control: 1 }, next: 2 },
-          { text: '그의 말에 귀를 기울이며 정보를 수집한다', result: '감정을 숨기고 냉정하게 적의 정보를 캐냈다.', statChanges: { mental: 2 }, next: 2, req: { stat: 'mental', min: 5 } },
-          { text: '오라클을 향해 직접 돌진한다', result: '주도권을 빼앗으려 했다. 위험했지만 효과적이었다.', statChanges: { power: 2 }, next: 2, req: { stat: 'power', min: 6 }, tag: 'power_use' }
+          { text: '그의 말에 귀를 기울이며 정보를 수집한다', result: '감정을 숨기고 냉정하게 적의 정보를 캐냈다.', statChanges: { mental: 2 }, next: 2, req: { stat: 'mental', min: 6 } },
+          /* 능력 전용 */
+          { text: '🌀 오라클 주변의 금속 장치를 압박해 항복을 유도한다', result: '물체들이 오라클을 향해 조여들었다. 그가 식은땀을 흘렸다.', statChanges: { power: 2, control: 2 }, next: 2, abilityReq: 'telekinesis', req: { stat: 'power', min: 7 } },
+          { text: '👁️ 오라클의 거짓말을 즉시 간파하고 역으로 정보를 캐낸다', result: '"AURA가 두려운 거군요. 왜죠?" 그의 눈이 커졌다.', statChanges: { mental: 3, control: 1 }, next: 2, abilityReq: 'clairvoyance' },
+          { text: '🧠 오라클과 정신 대결을 벌여 그의 능력을 역이용한다', result: '오라클이 자신의 계획을 스스로 말하기 시작했다.', statChanges: { mental: 2, control: 3 }, next: 2, abilityReq: 'mindControl', req: { stat: 'mental', min: 7 } },
+          { text: '💠 오라클의 공격을 몸으로 받아내며 정면 돌파한다', result: '오라클의 정신 공격이 당신에게 통하지 않았다. 육체가 방패였다.', statChanges: { power: 3 }, next: 2, abilityReq: 'regeneration' }
         ]
       },
       {
@@ -170,7 +200,9 @@ const CHAPTERS = [
         choices: [
           { text: '"조직을 믿겠습니다. 임무에 집중하죠."', result: '신뢰를 선택했다. 아직은.', statChanges: { control: 1, mental: 1 }, next: 'chapter_end' },
           { text: '"...조직에 대해 더 알아야겠습니다."', result: '의문의 씨앗이 자라기 시작했다.', statChanges: { mental: 2 }, next: 'chapter_end' },
-          { text: '"어떻게 생각하십니까, 지유씨?"', result: '지유의 눈빛이 흔들렸다. 그녀도 무언가를 알고 있는 것 같았다.', statChanges: { mental: 1, control: 1 }, next: 'chapter_end' }
+          { text: '"어떻게 생각하십니까, 지유씨?"', result: '지유의 눈빛이 흔들렸다. 그녀도 무언가를 알고 있는 것 같았다.', statChanges: { mental: 1, control: 1 }, next: 'chapter_end' },
+          /* 스탯 관문: 멘탈 8이상 */
+          { text: '"오라클이 달아난 방향 — 추적하겠습니다."', result: '지유가 눈을 가늘게 떴다. "...좋아요. 같이 가죠."', statChanges: { mental: 2, power: 1, control: 1 }, next: 'chapter_end', req: { stat: 'mental', min: 8 } }
         ]
       }
     ]
@@ -186,7 +218,12 @@ const CHAPTERS = [
         choices: [
           { text: '데이터를 최대한 복사하고 즉시 도주한다', result: '증거를 확보했다. 이제 어떻게 쓸지가 문제다.', statChanges: { mental: 1, power: 1 }, next: 1 },
           { text: '숨어서 누가 오는지 확인한다', result: '어둠 속에서 지켜본 자의 얼굴은 — 지유였다.', statChanges: { control: 1, mental: 2 }, next: 1, tag: 'spy_jiyu' },
-          { text: '침착하게 걸어나와 마주친다', result: '정면돌파. 당신은 발각됐지만 상대도 당신에게 비밀을 들켰다.', statChanges: { mental: 2, power: 1 }, next: 1, tag: 'confront_direct' }
+          { text: '침착하게 걸어나와 마주친다', result: '정면돌파. 당신은 발각됐지만 상대도 당신에게 비밀을 들켰다.', statChanges: { mental: 2, power: 1 }, next: 1, tag: 'confront_direct' },
+          /* 능력 전용 */
+          { text: '🌀 문을 염동력으로 잠그고 데이터를 전부 다운로드한다', result: '30초. 발소리가 멈췄다가 다시 멀어졌다.', statChanges: { control: 2, power: 1, mental: 1 }, next: 1, abilityReq: 'telekinesis' },
+          { text: '👁️ 복도를 투시해 인원·동선을 파악한 후 빠져나간다', result: '3명, 10시 방향. 완벽한 탈출로.', statChanges: { mental: 2, control: 2 }, next: 1, abilityReq: 'clairvoyance' },
+          { text: '🧠 다가오는 사람에게 혼란을 심어 방향을 돌린다', result: '발소리가 반대편으로 멀어졌다. 그는 자신이 왜 돌아섰는지 모를 것이다.', statChanges: { mental: 3, control: 2 }, next: 1, abilityReq: 'mindControl', req: { stat: 'mental', min: 9 } },
+          { text: '💠 들켜도 괜찮다 — 데이터를 다 챙기고 정면으로 나간다', result: '경비원이 당신의 눈빛에 압도당해 물러섰다. 육체가 만들어내는 위압감.', statChanges: { power: 3, mental: 1 }, next: 1, abilityReq: 'regeneration' }
         ]
       },
       {
@@ -195,7 +232,9 @@ const CHAPTERS = [
         choices: [
           { text: '"함께 내부에서 바꿔봅시다."', result: '변화를 내부에서 끌어내기로 했다. 위험한 길이다.', statChanges: { control: 2, mental: 1 }, next: 2, tag: 'inside_change' },
           { text: '"조직을 떠나 모든 것을 폭로하겠습니다."', result: '외부에서 압박하기로 결심했다. 돌이킬 수 없는 선택.', statChanges: { power: 1, mental: 2 }, next: 2, tag: 'expose' },
-          { text: '"...아직 결정할 수 없습니다. 더 알아야 해요."', result: '신중한 판단이 더 많은 정보를 모아줄 것이다.', statChanges: { mental: 3 }, next: 2, tag: 'gather_info' }
+          { text: '"...아직 결정할 수 없습니다. 더 알아야 해요."', result: '신중한 판단이 더 많은 정보를 모아줄 것이다.', statChanges: { mental: 3 }, next: 2, tag: 'gather_info' },
+          /* 스탯 관문: 멘탈 10 이상 */
+          { text: '"지유씨, 당신의 등급은 뭡니까?"', result: '지유가 굳은 표정으로 파일 한 장을 꺼냈다. 거기엔 **[등급: S — 영구 감시]** 라고 적혀 있었다.', statChanges: { mental: 2, control: 2 }, next: 2, req: { stat: 'mental', min: 10 }, tag: 'inside_change' }
         ]
       },
       {
@@ -204,7 +243,10 @@ const CHAPTERS = [
         choices: [
           { text: '"A등급이었어. 내일 혼자 가면 안 돼."', result: '진실을 말했다. 민은 고개를 끄덕였다.', statChanges: { mental: 1, power: 1 }, next: 'chapter_end', tag: 'told_truth' },
           { text: '"...걱정 마. 내가 뭔가 방법을 찾아볼게."', result: '민을 안심시키면서 시간을 벌었다.', statChanges: { control: 1, mental: 1 }, next: 'chapter_end', tag: 'protect_min' },
-          { text: '"C등급이었어." — 거짓말을 한다', result: '민을 지키려 거짓말을 했다. 하지만 진실은 언제까지 숨겨질까.', statChanges: { control: 2 }, next: 'chapter_end', tag: 'lie_min' }
+          { text: '"C등급이었어." — 거짓말을 한다', result: '민을 지키려 거짓말을 했다. 하지만 진실은 언제까지 숨겨질까.', statChanges: { control: 2 }, next: 'chapter_end', tag: 'lie_min' },
+          /* 능력 전용 */
+          { text: '🧠 민의 두려움을 잠시 덜어내고, 냉정하게 탈출 계획을 짠다', result: '민의 눈빛이 맑아졌다. 두 사람은 밤새 계획을 세웠다.', statChanges: { mental: 2, control: 2 }, next: 'chapter_end', abilityReq: 'mindControl', tag: 'protect_min' },
+          { text: '👁️ 내일 평가장의 구조를 투시해 탈출 경로를 미리 파악해 둔다', result: '세 개의 출구. 두 개는 막혀 있었다. 하나만 열려 있었다.', statChanges: { mental: 2, control: 2 }, next: 'chapter_end', abilityReq: 'clairvoyance', tag: 'protect_min' }
         ]
       }
     ]
@@ -219,37 +261,47 @@ const CHAPTERS = [
         text: `다음날 아침. 기지 전체가 비상 상태다.\n\n민이 소환 평가 중 능력이 폭주했다. 건물 한 층이 전기로 뒤덮였다. AURA 상층부는 이를 '위험 판정'으로 처리하고 격리 명령을 내렸다.\n\n당신 앞에 세 갈래 길이 있다.`,
         choices: [
           { text: '격리를 막고 민을 구한다 — 조직과 정면으로 맞선다', result: '선택했다. 되돌아올 수 없는 길을.', statChanges: { power: 1 }, next: 1, tag: 'fight_org' },
-          { text: '지유와 함께 내부 시스템을 해킹해 명령을 무효화한다', result: '힘이 아닌 지혜로 싸우기로 했다.', statChanges: { control: 1 }, next: 1, tag: 'hack_system' },
-          { text: '민을 직접 찾아가 폭주를 진정시킨다', result: '가장 위험한 선택. 하지만 민에겐 그것이 필요했다.', statChanges: { mental: 1 }, next: 1, tag: 'calm_min' }
+          { text: '지유와 함께 내부 시스템을 해킹해 격리 명령을 무효화한다', result: '힘이 아닌 지혜로 싸우기로 했다.', statChanges: { control: 1 }, next: 1, tag: 'hack_system' },
+          { text: '민을 직접 찾아가 폭주를 진정시킨다', result: '가장 위험한 선택. 하지만 민에겐 그것이 필요했다.', statChanges: { mental: 1 }, next: 1, tag: 'calm_min' },
+          /* 능력 전용 */
+          { text: '🌀 격리팀의 장비를 공중에서 멈추며 민을 데리고 빠져나간다', result: '15명의 장비가 동시에 공중에 떴다. 격리팀이 얼어붙었다.', statChanges: { power: 2, control: 2 }, next: 1, abilityReq: 'telekinesis', req: { stat: 'power', min: 9 }, tag: 'fight_org' },
+          { text: '👁️ 격리팀의 동선을 미리 읽어 민을 안전하게 이끈다', result: '마치 안개 속을 걷듯. 격리팀은 당신들의 그림자도 못 봤다.', statChanges: { mental: 2, control: 2 }, next: 1, abilityReq: 'clairvoyance', tag: 'fight_org' },
+          { text: '🧠 격리팀에게 극도의 혼란을 심어 스스로 퇴각하게 만든다', result: '격리팀 전원이 서로를 적으로 인식하며 뒤섞였다.', statChanges: { mental: 3, control: 1 }, next: 1, abilityReq: 'mindControl', req: { stat: 'mental', min: 11 }, tag: 'fight_org' },
+          { text: '💠 격리팀의 공격을 몸으로 받아내며 민을 등 뒤로 숨긴다', result: '당신의 몸은 점점 빠르게 회복됐다. 격리팀이 공포를 느꼈다.', statChanges: { power: 3, mental: 1 }, next: 1, abilityReq: 'regeneration', tag: 'fight_org' }
         ]
       },
       {
         id: 1,
-        text: `혼돈 속에서 AURA의 총책임자 **디렉터 강**이 모습을 드러낸다.\n\n60대의 노인이지만, 눈빛만은 젊다. 아니, 차갑다.\n\n"오해하지 마세요. 우리는 더 큰 위협으로부터 세상을 보호합니다. 통제되지 않는 능력자는 결국 모두를 위험에 빠뜨린다. 그 아이도, 당신도."\n\n"당신이 그 위협을 결정합니까?" — 당신의 목소리는 떨리지 않는다.\n\n디렉터 강의 눈이 가늘어진다. "당신에게 마지막 기회를 드리죠. 이 모든 것을 보지 못한 척하고 조직에 남거나 — 아니면 나가거나. 단, 나간 후엔 AURA가 적이 됩니다."`,
+        text: `혼돈 속에서 AURA의 총책임자 **디렉터 강**이 모습을 드러낸다.\n\n60대의 노인이지만, 눈빛만은 젊다. 아니, 차갑다.\n\n"오해하지 마세요. 우리는 더 큰 위협으로부터 세상을 보호합니다. 통제되지 않는 능력자는 결국 모두를 위험에 빠뜨린다. 그 아이도, 당신도."\n\n"당신이 그 위협을 결정합니까?" — 당신의 목소리는 떨리지 않는다.\n\n디렉터 강의 눈이 가늘어진다. "당신에게 마지막 기회를 드리죠. 이 모든 것을 보지 못한 척하고 조직에 남거나 — 아니면 나가거나."`,
         choices: [
           { text: '"조직 안에서 당신을 바꾸겠습니다."', result: '내부 개혁을 선택했다.', statChanges: { control: 2, mental: 1 }, next: 'ending', tag: 'ending_reform' },
           { text: '"나가겠습니다. — 그리고 당신들을 멈추겠습니다."', result: '독립의 길을 선택했다.', statChanges: { power: 1, mental: 2 }, next: 'ending', tag: 'ending_solo' },
-          { text: '[폭주] 더 이상 말이 필요 없다 — 내면의 힘이 터져 나온다', result: '균열이 왔다.', statChanges: { power: 3, control: -3 }, next: 'ending', tag: 'ending_rampage' }
+          { text: '[폭주] 더 이상 말이 필요 없다 — 내면의 힘이 터져 나온다', result: '균열이 왔다.', statChanges: { power: 3, control: -3 }, next: 'ending', tag: 'ending_rampage' },
+          /* 스탯 관문: 멘탈 12이상 → 특수 개혁 엔딩 경로 */
+          { text: '"강 이사장, 당신도 두렵군요. 자신이 만든 시스템이."', result: '디렉터 강이 굳어졌다. 처음으로 말문이 막혔다. 그 침묵이 답이었다.', statChanges: { mental: 2, control: 2 }, next: 'ending', req: { stat: 'mental', min: 12 }, tag: 'ending_reform_special' }
         ]
       }
     ]
   }
 ];
 
-/* ---------------------------------------------------------------
+/* =====================================================================
    ENDINGS
-   condition(stats, tags) → boolean
-   엔딩 결정 우선순위: rampage > reform_hero > lone_guardian > default_end
-   --------------------------------------------------------------- */
+   ===================================================================== */
 const ENDINGS = {
   rampage: {
     title: '폭주 — 균열의 끝', emoji: '⚡', color: '#ff5252',
-    description: `모든 것이 하얗게 번진다.\n\n당신이 기억하는 마지막 장면은 두 손에서 빛이 터져 나오던 순간이다. 그 다음은 모른다.\n\n정신을 차렸을 때, 당신은 AURA의 격리 시설 안에 있다. 창문 없는 방. 문 너머로 발자국 소리가 들린다.\n\n능력은 여전히 내 안에 있다. 하지만 이제는 — 사용할 기회가 있을까.\n\n...이것이 디렉터 강이 두려워했던 것이었다.\n\n힘이 전부라 믿었던 순간, 모든 것을 잃었다.`,
+    description: `모든 것이 하얗게 번진다.\n\n당신이 기억하는 마지막 장면은 두 손에서 빛이 터져 나오던 순간이다. 그 다음은 모른다.\n\n정신을 차렸을 때, 당신은 AURA의 격리 시설 안에 있다. 창문 없는 방. 문 너머로 발자국 소리가 들린다.\n\n능력은 여전히 내 안에 있다. 하지만 이제는 — 사용할 기회가 있을까.\n\n...이것이 디렉터 강이 두려워했던 것이었다.`,
     condition: (stats, tags) => tags.includes('ending_rampage')
+  },
+  reform_hero_special: {
+    title: '진실의 거울', emoji: '🔮', color: '#e040fb',
+    description: `그 침묵이 모든 것을 바꿨다.\n\n디렉터 강은 이틀 뒤 스스로 물러났다. 당신이 한 말이 그의 오래된 확신에 균열을 냈다는 것을 — 당신은 나중에야 지유에게 들었다.\n\n"그 사람, 사실은 겁쟁이였던 거야. 두려운 걸 통제하려다가 시스템이 된 거지."\n\nAURA는 재건됐다. 처분 가능 등급 시스템은 폐기됐다. 민은 새 훈련 교관이 됐다.\n\n당신은 이제 신입 각성자들을 마주한다. 예전의 당신처럼 두려워하는 눈빛으로.\n\n"겁먹지 마세요. 당신의 능력은 당신 편입니다."`,
+    condition: (stats, tags) => tags.includes('ending_reform_special')
   },
   reform_hero: {
     title: '빛 안의 개혁자', emoji: '🌟', color: '#7c4dff',
-    description: `당신은 AURA에 남았다.\n\n디렉터 강은 결국 물러났다. 내부 고발자들과 지유, 그리고 당신의 증언으로 상층부는 재편성됐다. 완전한 승리는 아니다. 조직의 구조적 문제는 여전히 남아 있고, 당신을 바라보는 시선에는 경계가 섞여 있다.\n\n하지만 민은 안전하다. 그리고 오늘도 새로운 각성자가 발굴되면, 처분 가능 등급 대신 이름이 적힌 파일이 생성된다.\n\n변화는 느리다. 그러나 당신은 안에서 계속 밀어붙일 것이다.`,
+    description: `당신은 AURA에 남았다.\n\n디렉터 강은 결국 물러났다. 내부 고발자들과 지유, 그리고 당신의 증언으로 상층부는 재편성됐다. 완전한 승리는 아니다. 조직의 구조적 문제는 여전히 남아 있다.\n\n하지만 민은 안전하다. 그리고 오늘도 새로운 각성자가 발굴되면, 처분 가능 등급 대신 이름이 적힌 파일이 생성된다.\n\n변화는 느리다. 그러나 당신은 안에서 계속 밀어붙일 것이다.`,
     condition: (stats, tags) => (stats.control + stats.mental >= 18) && tags.includes('ending_reform')
   },
   lone_guardian: {
@@ -259,7 +311,7 @@ const ENDINGS = {
   },
   default_end: {
     title: '새벽의 요원', emoji: '🌅', color: '#69f0ae',
-    description: `완벽한 답은 없었다.\n\n당신은 할 수 있는 것을 했다. 민을 구했고, 진실을 알았으며, 선택을 했다. 그것이 최선인지는 아직 모른다.\n\nAURA는 여전히 존재한다. 오라클도 아직 잡히지 않았다. 세상은 당신의 선택을 기억하지 못할 것이다.\n\n하지만 당신은 기억한다.\n\n새벽이 밝아온다. 오늘도 도시는 돌아간다. 그 이면에서, 당신은 계속 걸어간다.`,
+    description: `완벽한 답은 없었다.\n\n당신은 할 수 있는 것을 했다. 민을 구했고, 진실을 알았으며, 선택을 했다. 그것이 최선인지는 아직 모른다.\n\nAURA는 여전히 존재한다. 오라클도 아직 잡히지 않았다.\n\n하지만 당신은 기억한다.\n\n새벽이 밝아온다. 오늘도 도시는 돌아간다. 그 이면에서, 당신은 계속 걸어간다.`,
     condition: () => true
   }
 };
@@ -268,26 +320,32 @@ const ENDINGS = {
    HELPERS
    ===================================================================== */
 
-/* 엔딩 결정: tags와 최종 stats 기반 */
+/* 엔딩 결정: 우선순위 순서대로 체크 */
 function determineEnding(stats, tags) {
-  if (ENDINGS.rampage.condition(stats, tags))     return 'rampage';
-  if (ENDINGS.reform_hero.condition(stats, tags)) return 'reform_hero';
-  if (ENDINGS.lone_guardian.condition(stats, tags)) return 'lone_guardian';
+  if (ENDINGS.rampage.condition(stats, tags))             return 'rampage';
+  if (ENDINGS.reform_hero_special.condition(stats, tags)) return 'reform_hero_special';
+  if (ENDINGS.reform_hero.condition(stats, tags))         return 'reform_hero';
+  if (ENDINGS.lone_guardian.condition(stats, tags))       return 'lone_guardian';
   return 'default_end';
 }
 
-/* 스탯별 색상 */
 function statColor(stat) {
   return { power: '#ff6b6b', control: '#4fc3f7', mental: '#ce93d8' }[stat] || '#fff';
 }
 
-/* 선택지 요구 조건 충족 여부 */
-function meetsReq(choice, stats) {
-  if (!choice.req) return true;
-  return (stats[choice.req.stat] || 0) >= choice.req.min;
+/* 능력 전용 여부: abilityReq가 있으면 해당 능력이어야 표시 */
+function isVisible(choice, ability) {
+  if (!choice.abilityReq) return true;
+  return choice.abilityReq === ability;
 }
 
-/* 스탯 변화 적용 (0~MAX_STAT 범위 유지) */
+/* 스탯 관문 통과 여부: req가 있고 스탯이 부족하면 잠김 */
+function isLocked(choice, stats) {
+  if (!choice.req) return false;
+  return (stats[choice.req.stat] || 0) < choice.req.min;
+}
+
+/* 스탯 변화 적용 (0~MAX_STAT 유지) */
 function applyChanges(current, changes) {
   const next = { ...current };
   for (const [s, v] of Object.entries(changes || {})) {
@@ -300,7 +358,6 @@ function applyChanges(current, changes) {
    COMPONENTS
    ===================================================================== */
 
-/* 스탯 바 하나 */
 function StatBar({ label, value, stat }) {
   const color = statColor(stat);
   const pct = Math.min(100, (value / MAX_STAT) * 100);
@@ -317,7 +374,6 @@ function StatBar({ label, value, stat }) {
   );
 }
 
-/* 상단 HUD */
 function HUD({ stats, ability, playerName, chapterNum }) {
   const ab = ABILITIES[ability];
   return (
@@ -328,15 +384,13 @@ function HUD({ stats, ability, playerName, chapterNum }) {
     }}>
       <div style={{ flex:'0 0 auto' }}>
         <div style={{ fontSize:10, color:'#5050a0', marginBottom:2 }}>요원</div>
-        <div style={{ fontSize:14, fontWeight:'bold', color: ab?.color || '#fff' }}>
-          {ab?.emoji} {playerName}
-        </div>
+        <div style={{ fontSize:14, fontWeight:'bold', color: ab?.color || '#fff' }}>{ab?.emoji} {playerName}</div>
         <div style={{ fontSize:10, color: ab?.color, opacity:0.8 }}>{ab?.name}</div>
       </div>
       <div style={{ flex:1, minWidth:160 }}>
-        <StatBar label="⚡ 파워"    value={stats.power}   stat="power" />
-        <StatBar label="🎯 컨트롤"  value={stats.control} stat="control" />
-        <StatBar label="🧘 멘탈"    value={stats.mental}  stat="mental" />
+        <StatBar label="⚡ 파워"   value={stats.power}   stat="power" />
+        <StatBar label="🎯 컨트롤" value={stats.control} stat="control" />
+        <StatBar label="🧘 멘탈"   value={stats.mental}  stat="mental" />
       </div>
       <div style={{ textAlign:'right', fontSize:11, color:'#5050a0' }}>
         <div>챕터</div>
@@ -347,11 +401,9 @@ function HUD({ stats, ability, playerName, chapterNum }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 시작 화면 */
 function TitleScreen({ onStart }) {
   const [name, setName] = useState('');
   const ok = name.trim().length > 0;
-
   return (
     <div style={{
       minHeight:'100vh', display:'flex', flexDirection:'column',
@@ -359,60 +411,21 @@ function TitleScreen({ onStart }) {
       background:'linear-gradient(135deg,#080818 0%,#0d0d2b 50%,#120820 100%)',
       padding:24, position:'relative', overflow:'hidden'
     }}>
-      <div style={{
-        position:'absolute', width:500, height:500, borderRadius:'50%',
-        background:'radial-gradient(circle,rgba(124,77,255,0.08) 0%,transparent 70%)',
-        top:'5%', left:'50%', transform:'translateX(-50%)'
-      }} />
+      <div style={{ position:'absolute', width:500, height:500, borderRadius:'50%', background:'radial-gradient(circle,rgba(124,77,255,0.08) 0%,transparent 70%)', top:'5%', left:'50%', transform:'translateX(-50%)' }} />
       <div style={{ maxWidth:460, width:'100%', textAlign:'center', animation:'fadeIn 0.8s ease', position:'relative', zIndex:1 }}>
-        <div style={{ fontSize:11, letterSpacing:6, color:'#7c4dff', marginBottom:12, textTransform:'uppercase' }}>
-          Project AURA
-        </div>
-        <h1 style={{
-          fontSize:'clamp(40px,10vw,72px)', fontWeight:900, color:'#fff',
-          marginBottom:6, animation:'glow 3s ease infinite', lineHeight:1.05
-        }}>각성</h1>
+        <div style={{ fontSize:11, letterSpacing:6, color:'#7c4dff', marginBottom:12, textTransform:'uppercase' }}>Project AURA</div>
+        <h1 style={{ fontSize:'clamp(40px,10vw,72px)', fontWeight:900, color:'#fff', marginBottom:6, animation:'glow 3s ease infinite', lineHeight:1.05 }}>각성</h1>
         <div style={{ fontSize:17, color:'#9090c0', marginBottom:36 }}>도시의 그림자</div>
-
-        <div style={{
-          background:'rgba(255,255,255,0.04)', border:'1px solid rgba(124,77,255,0.25)',
-          borderRadius:12, padding:20, marginBottom:28,
-          fontSize:13, lineHeight:1.8, color:'#a0a0c0', textAlign:'left'
-        }}>
+        <div style={{ background:'rgba(255,255,255,0.04)', border:'1px solid rgba(124,77,255,0.25)', borderRadius:12, padding:20, marginBottom:28, fontSize:13, lineHeight:1.8, color:'#a0a0c0', textAlign:'left' }}>
           <div style={{ color:'#ce93d8', fontWeight:'bold', marginBottom:8 }}>⚠ 기밀 안내문</div>
           당신은 오늘 아침 각성했습니다. 프로젝트 AURA는 당신을 발굴했으며, 훈련과 임무를 통해 초능력을 성장시킬 수 있습니다. 당신의 선택이 이야기를 결정합니다.
-          <div style={{ marginTop:10, color:'#6060a0', fontSize:11 }}>
-            예상 플레이 시간: 20~30분 &nbsp;|&nbsp; 엔딩 4종
-          </div>
+          <div style={{ marginTop:10, color:'#6060a0', fontSize:11 }}>예상 플레이 시간: 20~30분 &nbsp;|&nbsp; 엔딩 5종</div>
         </div>
-
         <div style={{ marginBottom:20 }}>
           <div style={{ fontSize:11, color:'#5050a0', marginBottom:8 }}>요원 코드명 입력</div>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && ok && onStart(name.trim())}
-            placeholder="이름을 입력하세요"
-            maxLength={12}
-            style={{
-              width:'100%', padding:'12px 16px',
-              background:'rgba(255,255,255,0.06)', border:'1px solid rgba(124,77,255,0.35)',
-              borderRadius:8, color:'#fff', fontSize:16, textAlign:'center', fontFamily:'inherit'
-            }}
-          />
+          <input value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&ok&&onStart(name.trim())} placeholder="이름을 입력하세요" maxLength={12} style={{ width:'100%', padding:'12px 16px', background:'rgba(255,255,255,0.06)', border:'1px solid rgba(124,77,255,0.35)', borderRadius:8, color:'#fff', fontSize:16, textAlign:'center', fontFamily:'inherit' }} />
         </div>
-
-        <button
-          onClick={() => ok && onStart(name.trim())}
-          style={{
-            width:'100%', padding:'14px 0',
-            background: ok ? 'linear-gradient(135deg,#7c4dff,#512da8)' : '#1e1e40',
-            border:'none', borderRadius:10,
-            color: ok ? '#fff' : '#4040a0',
-            fontSize:16, fontWeight:'bold', cursor: ok ? 'pointer' : 'not-allowed',
-            transition:'all 0.3s ease', fontFamily:'inherit', letterSpacing:2
-          }}
-        >
+        <button onClick={()=>ok&&onStart(name.trim())} style={{ width:'100%', padding:'14px 0', background:ok?'linear-gradient(135deg,#7c4dff,#512da8)':'#1e1e40', border:'none', borderRadius:10, color:ok?'#fff':'#4040a0', fontSize:16, fontWeight:'bold', cursor:ok?'pointer':'not-allowed', transition:'all 0.3s ease', fontFamily:'inherit', letterSpacing:2 }}>
           {ok ? '각성 시작 →' : '이름을 입력하세요'}
         </button>
       </div>
@@ -421,57 +434,35 @@ function TitleScreen({ onStart }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 능력 각성 화면 */
 function AwakeningScreen({ onChoose }) {
   const [hovered, setHovered] = useState(null);
   const [chosen, setChosen] = useState(null);
-
   function pick(key) {
     if (chosen) return;
     setChosen(key);
     setTimeout(() => onChoose(key), 700);
   }
-
   return (
-    <div style={{
-      minHeight:'100vh', background:'linear-gradient(135deg,#080818,#120820)',
-      padding:'24px 16px', display:'flex', flexDirection:'column',
-      alignItems:'center', justifyContent:'center'
-    }}>
+    <div style={{ minHeight:'100vh', background:'linear-gradient(135deg,#080818,#120820)', padding:'24px 16px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
       <div style={{ maxWidth:620, width:'100%', animation:'fadeIn 0.6s ease' }}>
         <div style={{ textAlign:'center', marginBottom:32 }}>
           <div style={{ fontSize:11, letterSpacing:4, color:'#7c4dff', marginBottom:8 }}>능력 각성</div>
           <h2 style={{ fontSize:26, color:'#fff', marginBottom:10 }}>무엇이 각성했는가</h2>
-          <p style={{ color:'#7070a0', fontSize:13, lineHeight:1.8 }}>
-            내면에서 여러 가능성이 솟구칩니다.<br />하나를 선택하세요. 이것이 당신의 첫 번째 정체성입니다.
-          </p>
+          <p style={{ color:'#7070a0', fontSize:13, lineHeight:1.8 }}>내면에서 여러 가능성이 솟구칩니다.<br />하나를 선택하세요. 이것이 당신의 첫 번째 정체성입니다.</p>
         </div>
-
         <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))', gap:14 }}>
           {Object.entries(ABILITIES).map(([key, ab]) => {
-            const active = hovered === key || chosen === key;
+            const active = hovered===key||chosen===key;
             return (
-              <div
-                key={key}
-                onMouseEnter={() => setHovered(key)}
-                onMouseLeave={() => setHovered(null)}
-                onClick={() => pick(key)}
-                style={{
-                  background: chosen === key ? `${ab.color}20` : active ? 'rgba(255,255,255,0.06)' : 'rgba(255,255,255,0.03)',
-                  border:`1px solid ${active ? ab.color : 'rgba(255,255,255,0.08)'}`,
-                  borderRadius:12, padding:20, cursor: chosen ? 'default' : 'pointer',
-                  transition:'all 0.3s ease',
-                  boxShadow: chosen === key ? `0 0 28px ${ab.color}40` : 'none'
-                }}
-              >
+              <div key={key} onMouseEnter={()=>setHovered(key)} onMouseLeave={()=>setHovered(null)} onClick={()=>pick(key)} style={{ background:chosen===key?`${ab.color}20`:active?'rgba(255,255,255,0.06)':'rgba(255,255,255,0.03)', border:`1px solid ${active?ab.color:'rgba(255,255,255,0.08)'}`, borderRadius:12, padding:20, cursor:chosen?'default':'pointer', transition:'all 0.3s ease', boxShadow:chosen===key?`0 0 28px ${ab.color}40`:'none' }}>
                 <div style={{ fontSize:32, marginBottom:8 }}>{ab.emoji}</div>
                 <div style={{ fontSize:17, fontWeight:'bold', color:ab.color, marginBottom:6 }}>{ab.name}</div>
                 <div style={{ fontSize:12, color:'#7070a0', lineHeight:1.7, marginBottom:10 }}>{ab.desc}</div>
                 <div style={{ fontSize:11, color:'#505070', fontStyle:'italic', marginBottom:12 }}>"{ab.flavor}"</div>
                 <div style={{ display:'flex', flexWrap:'wrap', gap:8, fontSize:11 }}>
-                  {ab.initStats.power   > 0 && <span style={{ color:'#ff6b6b' }}>⚡ 파워 +{ab.initStats.power}</span>}
-                  {ab.initStats.control > 0 && <span style={{ color:'#4fc3f7' }}>🎯 컨트롤 +{ab.initStats.control}</span>}
-                  {ab.initStats.mental  > 0 && <span style={{ color:'#ce93d8' }}>🧘 멘탈 +{ab.initStats.mental}</span>}
+                  {ab.initStats.power>0&&<span style={{ color:'#ff6b6b' }}>⚡ 파워 +{ab.initStats.power}</span>}
+                  {ab.initStats.control>0&&<span style={{ color:'#4fc3f7' }}>🎯 컨트롤 +{ab.initStats.control}</span>}
+                  {ab.initStats.mental>0&&<span style={{ color:'#ce93d8' }}>🧘 멘탈 +{ab.initStats.mental}</span>}
                 </div>
               </div>
             );
@@ -483,41 +474,26 @@ function AwakeningScreen({ onChoose }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 챕터 전환 화면 */
 function ChapterTransition({ chapterNum, statChanges, stats, onContinue }) {
-  const ch = CHAPTERS[chapterNum - 1];
+  const ch = CHAPTERS[chapterNum-1];
   const [show, setShow] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), 80); return () => clearTimeout(t); }, []);
-
+  useEffect(() => { const t=setTimeout(()=>setShow(true),80); return()=>clearTimeout(t); }, []);
   return (
-    <div style={{
-      minHeight:'100vh', background:'linear-gradient(135deg,#080818,#0d1a0d)',
-      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24
-    }}>
-      <div style={{
-        maxWidth:460, width:'100%', textAlign:'center',
-        opacity: show ? 1 : 0, transform: show ? 'translateY(0)' : 'translateY(20px)',
-        transition:'all 0.7s ease'
-      }}>
+    <div style={{ minHeight:'100vh', background:'linear-gradient(135deg,#080818,#0d1a0d)', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24 }}>
+      <div style={{ maxWidth:460, width:'100%', textAlign:'center', opacity:show?1:0, transform:show?'translateY(0)':'translateY(20px)', transition:'all 0.7s ease' }}>
         <div style={{ fontSize:11, color:'#4caf50', letterSpacing:4, marginBottom:8 }}>챕터 {chapterNum} 완료</div>
         <h2 style={{ fontSize:22, color:'#fff', marginBottom:4 }}>{ch?.title}</h2>
         <div style={{ fontSize:13, color:'#505050', marginBottom:28 }}>{ch?.subtitle}</div>
-
-        <div style={{
-          background:'rgba(255,255,255,0.03)', border:'1px solid rgba(76,175,80,0.25)',
-          borderRadius:12, padding:20, marginBottom:24
-        }}>
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid rgba(76,175,80,0.25)', borderRadius:12, padding:20, marginBottom:24 }}>
           <div style={{ fontSize:12, color:'#4caf50', marginBottom:14 }}>능력 성장</div>
-          {['power','control','mental'].map(stat => {
-            const labels = { power:'⚡ 파워', control:'🎯 컨트롤', mental:'🧘 멘탈' };
-            const v = statChanges[stat] || 0;
+          {['power','control','mental'].map(stat=>{
+            const labels={power:'⚡ 파워',control:'🎯 컨트롤',mental:'🧘 멘탈'};
+            const v=statChanges[stat]||0;
             return (
               <div key={stat} style={{ marginBottom:10 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
                   <span style={{ color:'#9090b0' }}>{labels[stat]}</span>
-                  <span style={{ color: v > 0 ? '#4caf50' : v < 0 ? '#f44336' : '#5050a0' }}>
-                    {v > 0 ? `+${v}` : v < 0 ? v : '—'} → {stats[stat]}
-                  </span>
+                  <span style={{ color:v>0?'#4caf50':v<0?'#f44336':'#5050a0' }}>{v>0?`+${v}`:v<0?v:'—'} → {stats[stat]}</span>
                 </div>
                 <div style={{ background:'#1a1a3a', borderRadius:4, height:6 }}>
                   <div style={{ width:`${(stats[stat]/MAX_STAT)*100}%`, height:'100%', background:statColor(stat), borderRadius:4, transition:'width 1s ease' }} />
@@ -526,17 +502,7 @@ function ChapterTransition({ chapterNum, statChanges, stats, onContinue }) {
             );
           })}
         </div>
-
-        <button
-          onClick={onContinue}
-          style={{
-            padding:'13px 40px',
-            background:'linear-gradient(135deg,#4caf50,#2e7d32)',
-            border:'none', borderRadius:10,
-            color:'#fff', fontSize:15, fontWeight:'bold',
-            cursor:'pointer', fontFamily:'inherit', letterSpacing:1
-          }}
-        >
+        <button onClick={onContinue} style={{ padding:'13px 40px', background:'linear-gradient(135deg,#4caf50,#2e7d32)', border:'none', borderRadius:10, color:'#fff', fontSize:15, fontWeight:'bold', cursor:'pointer', fontFamily:'inherit', letterSpacing:1 }}>
           다음 챕터로 →
         </button>
       </div>
@@ -545,106 +511,88 @@ function ChapterTransition({ chapterNum, statChanges, stats, onContinue }) {
 }
 
 /* ------------------------------------------------------------------ */
-/* 스토리 진행 화면 */
 function StoryScreen({ chapter, scene, stats, ability, playerName, chapterNum, onChoice }) {
-  const [flash, setFlash] = useState(''); // 선택 후 결과 텍스트
+  const [flash, setFlash] = useState('');
   const [locked, setLocked] = useState(false);
+  const ab = ABILITIES[ability];
 
-  /* **bold** 마크업 파싱 */
   function parseText(text) {
-    return text.split(/(\*\*[^*]+\*\*)/g).map((p, i) =>
-      p.startsWith('**')
-        ? <strong key={i} style={{ color:'#e0e0ff' }}>{p.slice(2,-2)}</strong>
-        : p
+    return text.split(/(\*\*[^*]+\*\*)/g).map((p,i)=>
+      p.startsWith('**') ? <strong key={i} style={{ color:'#e0e0ff' }}>{p.slice(2,-2)}</strong> : p
     );
   }
 
   function handleClick(choice) {
-    if (locked || !meetsReq(choice, stats)) return;
+    if (locked || isLocked(choice, stats)) return;
     setLocked(true);
     setFlash(choice.result);
-    setTimeout(() => {
-      setFlash('');
-      setLocked(false);
-      onChoice(choice);
-    }, 1400);
+    setTimeout(()=>{ setFlash(''); setLocked(false); onChoice(choice); }, 1400);
   }
 
+  /* 능력 전용 선택지인지 판별 */
+  function isAbilityChoice(choice) { return !!choice.abilityReq; }
+
+  /* 표시할 선택지만 필터링 */
+  const visibleChoices = scene.choices.filter(c => isVisible(c, ability));
+
   return (
-    <div style={{
-      minHeight:'100vh', background:'linear-gradient(180deg,#080818 0%,#0a0a20 100%)',
-      padding:16, display:'flex', flexDirection:'column', alignItems:'center'
-    }}>
+    <div style={{ minHeight:'100vh', background:'linear-gradient(180deg,#080818 0%,#0a0a20 100%)', padding:16, display:'flex', flexDirection:'column', alignItems:'center' }}>
       <div style={{ maxWidth:600, width:'100%' }}>
         <HUD stats={stats} ability={ability} playerName={playerName} chapterNum={chapterNum} />
 
         <div style={{ marginBottom:14, paddingBottom:10, borderBottom:'1px solid #1a1a3a' }}>
-          <div style={{ fontSize:11, color:'#7c4dff', letterSpacing:3 }}>
-            챕터 {chapterNum} — {chapter.title}
-          </div>
+          <div style={{ fontSize:11, color:'#7c4dff', letterSpacing:3 }}>챕터 {chapterNum} — {chapter.title}</div>
         </div>
 
-        {/* 스토리 본문 */}
-        <div style={{
-          background:'rgba(255,255,255,0.03)', border:'1px solid #181828',
-          borderRadius:12, padding:'20px 24px', marginBottom:18,
-          fontSize:14, lineHeight:1.95, color:'#b0b0d0',
-          whiteSpace:'pre-line', animation:'fadeIn 0.4s ease'
-        }}>
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid #181828', borderRadius:12, padding:'20px 24px', marginBottom:18, fontSize:14, lineHeight:1.95, color:'#b0b0d0', whiteSpace:'pre-line', animation:'fadeIn 0.4s ease' }}>
           {parseText(scene.text)}
         </div>
 
-        {/* 결과 플래시 */}
         {flash && (
-          <div style={{
-            background:'rgba(124,77,255,0.1)', border:'1px solid rgba(124,77,255,0.3)',
-            borderRadius:8, padding:'12px 16px', marginBottom:14,
-            fontSize:13, color:'#b090ff', fontStyle:'italic',
-            animation:'fadeIn 0.3s ease'
-          }}>
+          <div style={{ background:'rgba(124,77,255,0.1)', border:'1px solid rgba(124,77,255,0.3)', borderRadius:8, padding:'12px 16px', marginBottom:14, fontSize:13, color:'#b090ff', fontStyle:'italic', animation:'fadeIn 0.3s ease' }}>
             {flash}
           </div>
         )}
 
-        {/* 선택지 버튼들 */}
         {!locked && (
           <div style={{ display:'flex', flexDirection:'column', gap:10, animation:'fadeIn 0.4s ease' }}>
-            {scene.choices.map((choice, i) => {
-              const ok = meetsReq(choice, stats);
+            {/* 능력 전용 선택지 구분선 */}
+            {visibleChoices.some(c=>isAbilityChoice(c)) && visibleChoices.some(c=>!isAbilityChoice(c)) && (
+              <div style={{ fontSize:10, color: ab?.color, letterSpacing:2, padding:'4px 0', display:'flex', alignItems:'center', gap:8, opacity:0.7 }}>
+                <span style={{ flex:1, height:1, background:`${ab?.color}40` }} />
+                {ab?.emoji} {ab?.name} 전용
+                <span style={{ flex:1, height:1, background:`${ab?.color}40` }} />
+              </div>
+            )}
+
+            {visibleChoices.map((choice, i) => {
+              const isAb = isAbilityChoice(choice);
+              const lock = isLocked(choice, stats);
+              const borderColor = isAb ? `${ab?.color}70` : lock ? 'rgba(50,50,70,0.5)' : 'rgba(124,77,255,0.35)';
+              const bgColor = isAb ? `${ab?.color}10` : 'rgba(255,255,255,0.04)';
+              const textColor = lock ? '#454560' : isAb ? '#e0e0ff' : '#c8c8e8';
+
               return (
-                <button
-                  key={i}
-                  onClick={() => handleClick(choice)}
-                  style={{
-                    padding:'14px 18px',
-                    background: ok ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-                    border:`1px solid ${ok ? 'rgba(124,77,255,0.4)' : 'rgba(50,50,70,0.5)'}`,
-                    borderRadius:10, color: ok ? '#c8c8e8' : '#454560',
-                    fontSize:13, lineHeight:1.5,
-                    cursor: ok ? 'pointer' : 'not-allowed',
-                    textAlign:'left', fontFamily:'inherit',
-                    transition:'background 0.2s ease',
-                    display:'flex', alignItems:'flex-start', gap:12
-                  }}
-                  onMouseEnter={e => ok && (e.currentTarget.style.background='rgba(124,77,255,0.12)')}
-                  onMouseLeave={e => ok && (e.currentTarget.style.background='rgba(255,255,255,0.05)')}
+                <button key={i} onClick={()=>handleClick(choice)} style={{ padding:'14px 18px', background:bgColor, border:`1px solid ${borderColor}`, borderRadius:10, color:textColor, fontSize:13, lineHeight:1.5, cursor:lock?'not-allowed':'pointer', textAlign:'left', fontFamily:'inherit', transition:'background 0.2s ease', display:'flex', alignItems:'flex-start', gap:12 }}
+                  onMouseEnter={e=>!lock&&(e.currentTarget.style.background=isAb?`${ab?.color}20`:'rgba(124,77,255,0.12)')}
+                  onMouseLeave={e=>!lock&&(e.currentTarget.style.background=bgColor)}
                 >
-                  <span style={{ color: ok ? '#7c4dff' : '#303050', fontWeight:'bold', minWidth:18 }}>
+                  <span style={{ color:lock?'#303050':isAb?ab?.color:'#7c4dff', fontWeight:'bold', minWidth:18 }}>
                     {String.fromCharCode(65+i)}
                   </span>
                   <span>
                     {choice.text}
-                    {/* 잠긴 선택지 조건 표시 */}
-                    {choice.req && !ok && (
+                    {/* 잠긴 스탯 관문 표시 */}
+                    {lock && (
                       <span style={{ display:'block', fontSize:11, color:'#e57373', marginTop:4 }}>
-                        🔒 {choice.req.stat === 'power' ? '파워' : choice.req.stat === 'control' ? '컨트롤' : '멘탈'} {choice.req.min} 이상 필요
+                        🔒 {choice.req.stat==='power'?'파워':choice.req.stat==='control'?'컨트롤':'멘탈'} {choice.req.min} 이상 필요
                       </span>
                     )}
                     {/* 스탯 변화 미리보기 */}
-                    {ok && (
-                      <span style={{ display:'block', fontSize:11, marginTop:4, opacity:0.7 }}>
-                        {Object.entries(choice.statChanges||{}).map(([s,v]) => (
-                          <span key={s} style={{ color: v>0 ? '#81c784' : '#e57373', marginRight:8 }}>
+                    {!lock && (
+                      <span style={{ display:'block', fontSize:11, marginTop:4, opacity:0.65 }}>
+                        {Object.entries(choice.statChanges||{}).map(([s,v])=>(
+                          <span key={s} style={{ color:v>0?'#81c784':'#e57373', marginRight:8 }}>
                             {s==='power'?'⚡':s==='control'?'🎯':'🧘'}{v>0?`+${v}`:v}
                           </span>
                         ))}
@@ -662,49 +610,23 @@ function StoryScreen({ chapter, scene, stats, ability, playerName, chapterNum, o
 }
 
 /* ------------------------------------------------------------------ */
-/* 엔딩 화면 */
 function EndingScreen({ endingKey, stats, ability, playerName, onRestart }) {
   const ending = ENDINGS[endingKey];
   const ab = ABILITIES[ability];
   const [show, setShow] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setShow(true), 200); return () => clearTimeout(t); }, []);
-
+  useEffect(()=>{ const t=setTimeout(()=>setShow(true),200); return()=>clearTimeout(t); },[]);
   return (
-    <div style={{
-      minHeight:'100vh',
-      background:`linear-gradient(135deg,#080818 0%,${ending.color}12 100%)`,
-      display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24
-    }}>
-      <div style={{
-        maxWidth:500, width:'100%', textAlign:'center',
-        opacity: show?1:0, transform: show?'translateY(0)':'translateY(20px)',
-        transition:'all 0.8s ease'
-      }}>
+    <div style={{ minHeight:'100vh', background:`linear-gradient(135deg,#080818 0%,${ending.color}12 100%)`, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:24 }}>
+      <div style={{ maxWidth:500, width:'100%', textAlign:'center', opacity:show?1:0, transform:show?'translateY(0)':'translateY(20px)', transition:'all 0.8s ease' }}>
         <div style={{ fontSize:52, marginBottom:16 }}>{ending.emoji}</div>
         <div style={{ fontSize:11, color:ending.color, letterSpacing:4, marginBottom:8 }}>ENDING</div>
-        <h2 style={{
-          fontSize:24, color:'#fff', marginBottom:24,
-          textShadow:`0 0 24px ${ending.color}70`
-        }}>{ending.title}</h2>
-
-        <div style={{
-          background:'rgba(255,255,255,0.04)', border:`1px solid ${ending.color}28`,
-          borderRadius:12, padding:24, marginBottom:22,
-          fontSize:14, lineHeight:2, color:'#b0b0d0',
-          whiteSpace:'pre-line', textAlign:'left'
-        }}>
+        <h2 style={{ fontSize:24, color:'#fff', marginBottom:24, textShadow:`0 0 24px ${ending.color}70` }}>{ending.title}</h2>
+        <div style={{ background:'rgba(255,255,255,0.04)', border:`1px solid ${ending.color}28`, borderRadius:12, padding:24, marginBottom:22, fontSize:14, lineHeight:2, color:'#b0b0d0', whiteSpace:'pre-line', textAlign:'left' }}>
           {ending.description}
         </div>
-
-        {/* 최종 스탯 */}
-        <div style={{
-          background:'rgba(255,255,255,0.03)', border:'1px solid #252535',
-          borderRadius:12, padding:20, marginBottom:24
-        }}>
-          <div style={{ fontSize:12, color:'#5050a0', marginBottom:14 }}>
-            최종 스탯 — {ab?.emoji} {playerName}
-          </div>
-          {[['power','⚡ 파워'],['control','🎯 컨트롤'],['mental','🧘 멘탈']].map(([s,l]) => (
+        <div style={{ background:'rgba(255,255,255,0.03)', border:'1px solid #252535', borderRadius:12, padding:20, marginBottom:24 }}>
+          <div style={{ fontSize:12, color:'#5050a0', marginBottom:14 }}>최종 스탯 — {ab?.emoji} {playerName}</div>
+          {[['power','⚡ 파워'],['control','🎯 컨트롤'],['mental','🧘 멘탈']].map(([s,l])=>(
             <div key={s} style={{ marginBottom:10 }}>
               <div style={{ display:'flex', justifyContent:'space-between', fontSize:12, marginBottom:4 }}>
                 <span style={{ color:'#8080a0' }}>{l}</span>
@@ -716,18 +638,9 @@ function EndingScreen({ endingKey, stats, ability, playerName, onRestart }) {
             </div>
           ))}
         </div>
-
-        <button
-          onClick={onRestart}
-          style={{
-            padding:'13px 40px',
-            background:'rgba(255,255,255,0.05)', border:`1px solid ${ending.color}40`,
-            borderRadius:10, color:'#b0b0d0',
-            fontSize:14, cursor:'pointer', fontFamily:'inherit', letterSpacing:1,
-            transition:'background 0.2s ease'
-          }}
-          onMouseEnter={e => e.currentTarget.style.background='rgba(255,255,255,0.1)'}
-          onMouseLeave={e => e.currentTarget.style.background='rgba(255,255,255,0.05)'}
+        <button onClick={onRestart} style={{ padding:'13px 40px', background:'rgba(255,255,255,0.05)', border:`1px solid ${ending.color}40`, borderRadius:10, color:'#b0b0d0', fontSize:14, cursor:'pointer', fontFamily:'inherit', letterSpacing:1, transition:'background 0.2s ease' }}
+          onMouseEnter={e=>e.currentTarget.style.background='rgba(255,255,255,0.1)'}
+          onMouseLeave={e=>e.currentTarget.style.background='rgba(255,255,255,0.05)'}
         >
           처음부터 다시하기
         </button>
@@ -737,47 +650,42 @@ function EndingScreen({ endingKey, stats, ability, playerName, onRestart }) {
 }
 
 /* =====================================================================
-   MAIN GAME STATE MACHINE
+   MAIN GAME
    ===================================================================== */
 function Game() {
-  const [screen, setScreen]       = useState('title');      // title|awakening|story|transition|ending
-  const [playerName, setName]     = useState('');
-  const [ability, setAbility]     = useState(null);
-  const [stats, setStats]         = useState({ power:0, control:0, mental:0 });
-  const [chapterIdx, setChIdx]    = useState(0);            // 0-based index into CHAPTERS
-  const [sceneIdx, setScIdx]      = useState(0);
-  const [tags, setTags]           = useState([]);           // 누적 선택 태그 (엔딩 분기 결정용)
-  const [chDelta, setChDelta]     = useState({ power:0, control:0, mental:0 }); // 챕터 내 스탯 변화 누적
-  const [endingKey, setEndKey]    = useState(null);
+  const [screen, setScreen]   = useState('title');
+  const [playerName, setName] = useState('');
+  const [ability, setAbility] = useState(null);
+  const [stats, setStats]     = useState({ power:0, control:0, mental:0 });
+  const [chapterIdx, setChIdx]= useState(0);
+  const [sceneIdx, setScIdx]  = useState(0);
+  const [tags, setTags]       = useState([]);
+  const [chDelta, setChDelta] = useState({ power:0, control:0, mental:0 });
+  const [endingKey, setEndKey]= useState(null);
 
-  /* 능력 선택 → 초기 스탯 설정 후 스토리 시작 */
   function onAwakening(key) {
     setAbility(key);
     setStats({ ...ABILITIES[key].initStats });
     setScreen('story');
   }
 
-  /* 선택지 클릭 처리 */
   function onChoice(choice) {
-    /* 1. 스탯 반영 */
     const newStats = applyChanges(stats, choice.statChanges);
     setStats(newStats);
 
-    /* 2. 챕터 내 변화량 누적 */
+    /* 챕터 내 누적 변화량 */
     const delta = { ...chDelta };
-    for (const [s, v] of Object.entries(choice.statChanges || {})) {
-      if (delta[s] !== undefined) delta[s] = (delta[s] || 0) + (v || 0);
+    for (const [s,v] of Object.entries(choice.statChanges||{})) {
+      if (delta[s]!==undefined) delta[s]=(delta[s]||0)+(v||0);
     }
     setChDelta(delta);
 
-    /* 3. 선택 태그 누적 */
     const newTags = choice.tag ? [...tags, choice.tag] : tags;
     setTags(newTags);
 
-    /* 4. 다음 상태 결정 */
-    if (choice.next === 'chapter_end') {
+    if (choice.next==='chapter_end') {
       setScreen('transition');
-    } else if (choice.next === 'ending') {
+    } else if (choice.next==='ending') {
       setEndKey(determineEnding(newStats, newTags));
       setScreen('ending');
     } else {
@@ -785,40 +693,36 @@ function Game() {
     }
   }
 
-  /* 챕터 전환 → 다음 챕터 or 엔딩 */
   function onTransitionContinue() {
-    const next = chapterIdx + 1;
-    if (next >= CHAPTERS.length) {
+    const next = chapterIdx+1;
+    if (next>=CHAPTERS.length) {
       setEndKey(determineEnding(stats, tags));
       setScreen('ending');
     } else {
-      setChIdx(next);
-      setScIdx(0);
+      setChIdx(next); setScIdx(0);
       setChDelta({ power:0, control:0, mental:0 });
       setScreen('story');
     }
   }
 
-  /* 재시작 */
   function onRestart() {
     setScreen('title'); setName(''); setAbility(null);
     setStats({ power:0, control:0, mental:0 });
-    setChIdx(0); setScIdx(0); setTags([]); setChDelta({ power:0, control:0, mental:0 }); setEndKey(null);
+    setChIdx(0); setScIdx(0); setTags([]);
+    setChDelta({ power:0, control:0, mental:0 }); setEndKey(null);
   }
 
   const chapter = CHAPTERS[chapterIdx];
   const scene   = chapter?.scenes[sceneIdx];
 
-  if (screen === 'title')     return <TitleScreen onStart={n => { setName(n); setScreen('awakening'); }} />;
-  if (screen === 'awakening') return <AwakeningScreen onChoose={onAwakening} />;
-  if (screen === 'story' && chapter && scene)
-    return <StoryScreen chapter={chapter} scene={scene} stats={stats} ability={ability}
-                        playerName={playerName} chapterNum={chapterIdx+1} onChoice={onChoice} />;
-  if (screen === 'transition')
+  if (screen==='title')     return <TitleScreen onStart={n=>{setName(n);setScreen('awakening');}} />;
+  if (screen==='awakening') return <AwakeningScreen onChoose={onAwakening} />;
+  if (screen==='story'&&chapter&&scene)
+    return <StoryScreen chapter={chapter} scene={scene} stats={stats} ability={ability} playerName={playerName} chapterNum={chapterIdx+1} onChoice={onChoice} />;
+  if (screen==='transition')
     return <ChapterTransition chapterNum={chapterIdx+1} statChanges={chDelta} stats={stats} onContinue={onTransitionContinue} />;
-  if (screen === 'ending')
+  if (screen==='ending')
     return <EndingScreen endingKey={endingKey} stats={stats} ability={ability} playerName={playerName} onRestart={onRestart} />;
-
   return null;
 }
 
