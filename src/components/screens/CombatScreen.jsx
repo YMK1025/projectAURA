@@ -5,6 +5,33 @@ import { SKILLS } from '../../data/skills.js';
 import { getEffectDesc } from '../../engine/combat.js';
 import StatBar from '../ui/StatBar.jsx';
 
+function getSkillEffectHint(sk) {
+  switch (sk.type) {
+    case 'damage':
+      return sk.target === 'all_enemies'
+        ? `전체 공격 · ${sk.statScale === 'mental' ? '정신' : '파워'} × ${sk.multiplier}`
+        : `단일 공격 · ${sk.statScale === 'mental' ? '정신' : '파워'} × ${sk.multiplier}`;
+    case 'heal':
+      return `HP 회복 · 기본 ${sk.baseHeal} + 정신 × ${sk.multiplier}`;
+    case 'buff':
+      if (sk.effect?.type === 'defended')    return `방어 강화 · 피해 ${Math.round((1 - (sk.effect.mult ?? 0.5)) * 100)}% 감소 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'dodge_next')  return `다음 공격 확정 회피 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'overdrive')   return `공격력 × ${sk.effect.atkMult} · 스탯 +${sk.effect.statBonus} (${sk.effect.duration}턴)`;
+      return sk.desc;
+    case 'debuff':
+      if (sk.effect?.type === 'stun')        return `행동 불능 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'fear')        return `공격력 ${Math.round((1 - sk.effect.atkMult) * 100)}% 감소 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'exposed')     return `피해 +${Math.round(sk.effect.damageUp * 100)}% 증가 (${sk.effect.duration}턴)`;
+      return sk.desc;
+    case 'special':
+      if (sk.effect?.type === 'extra_turn')  return '추가 행동 획득';
+      if (sk.effect?.type === 'dominated')   return '적이 자신을 공격 (ATK × 0.8)';
+      return sk.desc;
+    default:
+      return sk.desc;
+  }
+}
+
 const TAB = { SKILL: 'skill', ITEM: 'item' };
 
 export default function CombatScreen() {
@@ -154,6 +181,7 @@ export default function CombatScreen() {
                 const sk = SKILLS[skillId];
                 if (!sk) return null;
                 const canUse = mp >= sk.mpCost;
+                const effectHint = getSkillEffectHint(sk);
                 return (
                   <button
                     key={skillId}
@@ -167,9 +195,8 @@ export default function CombatScreen() {
                     }}
                   >
                     <div style={{ fontWeight: 600, fontSize: 12 }}>{sk.name}</div>
-                    <div style={{ fontSize: 11, color: '#aaa', marginTop: 2 }}>
-                      MP {sk.mpCost} · {sk.type}
-                    </div>
+                    <div style={{ fontSize: 11, color: '#00bcd4', marginTop: 2 }}>{effectHint}</div>
+                    <div style={{ fontSize: 10, color: '#666', marginTop: 1 }}>MP {sk.mpCost}</div>
                   </button>
                 );
               })}

@@ -7,7 +7,7 @@ export const ENEMIES = {
   aura_guard: {
     id: 'aura_guard', name: 'AURA 경비원', emoji: '🕴️',
     maxHp: 180, atk: 28, def: 8,
-    expReward: 0, goldReward: 60,
+    expReward: 50, goldReward: 60,
     itemDrop: { itemId: 'recovery_s', chance: 0.3 },
     pattern: [
       { action: 'attack', weight: 7 },
@@ -18,7 +18,7 @@ export const ENEMIES = {
   nexus_agent: {
     id: 'nexus_agent', name: 'Nexus 요원', emoji: '🥷',
     maxHp: 150, atk: 35, def: 5,
-    expReward: 0, goldReward: 70,
+    expReward: 55, goldReward: 70,
     itemDrop: { itemId: 'stabilizer', chance: 0.25 },
     pattern: [
       { action: 'attack', weight: 6 },
@@ -30,7 +30,7 @@ export const ENEMIES = {
   rogue_awakened: {
     id: 'rogue_awakened', name: '폭주 각성자', emoji: '⚡',
     maxHp: 220, atk: 42, def: 4,
-    expReward: 0, goldReward: 90,
+    expReward: 70, goldReward: 90,
     itemDrop: { itemId: 'energy_drink', chance: 0.4 },
     pattern: [
       { action: 'attack', weight: 5 },
@@ -42,7 +42,7 @@ export const ENEMIES = {
   oracle_follower: {
     id: 'oracle_follower', name: '오라클 추종자', emoji: '👤',
     maxHp: 160, atk: 30, def: 6,
-    expReward: 0, goldReward: 65,
+    expReward: 55, goldReward: 65,
     itemDrop: { itemId: 'antidote', chance: 0.2 },
     pattern: [
       { action: 'attack', weight: 5 },
@@ -56,7 +56,7 @@ export const ENEMIES = {
   aura_captain: {
     id: 'aura_captain', name: 'AURA 대장', emoji: '🎖️',
     maxHp: 480, atk: 55, def: 18,
-    expReward: 0, goldReward: 200,
+    expReward: 150, goldReward: 200,
     itemDrop: { itemId: 'reinforced_suit', chance: 0.5 },
     isBoss: true,
     pattern: [
@@ -70,7 +70,7 @@ export const ENEMIES = {
   nexus_lieutenant: {
     id: 'nexus_lieutenant', name: 'Nexus 중위', emoji: '🔫',
     maxHp: 420, atk: 62, def: 12,
-    expReward: 0, goldReward: 220,
+    expReward: 160, goldReward: 220,
     itemDrop: { itemId: 'nexus_chip', chance: 0.4 },
     isBoss: true,
     pattern: [
@@ -84,7 +84,7 @@ export const ENEMIES = {
   jiyu_boss: {
     id: 'jiyu_boss', name: '지유 (Ji-Yu)', emoji: '🗡️',
     maxHp: 550, atk: 70, def: 20,
-    expReward: 0, goldReward: 0,
+    expReward: 120, goldReward: 0,
     isBoss: true,
     pattern: [
       { action: 'attack', weight: 4 },
@@ -98,7 +98,7 @@ export const ENEMIES = {
   kai_boss: {
     id: 'kai_boss', name: '카이 (Kai)', emoji: '⚔️',
     maxHp: 500, atk: 65, def: 15,
-    expReward: 0, goldReward: 0,
+    expReward: 120, goldReward: 0,
     isBoss: true,
     pattern: [
       { action: 'attack', weight: 4 },
@@ -114,7 +114,7 @@ export const ENEMIES = {
   echo: {
     id: 'echo', name: 'Echo (Nexus 수장)', emoji: '🌑',
     maxHp: 999, atk: 90, def: 25,
-    expReward: 0, goldReward: 0,
+    expReward: 200, goldReward: 0,
     isFinalBoss: true,
     phases: 2,
     pattern: [
@@ -136,7 +136,7 @@ export const ENEMIES = {
   director_kang: {
     id: 'director_kang', name: '디렉터 강', emoji: '👔',
     maxHp: 800, atk: 75, def: 30,
-    expReward: 0, goldReward: 0,
+    expReward: 200, goldReward: 0,
     isFinalBoss: true,
     phases: 2,
     bodyguard: 'aura_captain',

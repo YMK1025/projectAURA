@@ -2,14 +2,25 @@ import { create } from 'zustand';
 import { ABILITIES } from '../data/abilities.js';
 import { ABILITY_SKILLS } from '../data/skills.js';
 import { getNode } from '../data/chapters/index.js';
-import { SHOP_INVENTORIES } from '../data/items.js';
+import { ITEMS, SHOP_INVENTORIES } from '../data/items.js';
 import {
   initCombat, playerAttack, playerSkill,
   playerDefend, useItemInCombat, enemyTurn,
 } from '../engine/combat.js';
-import { clampHp, clampMp, clampStat, STAT_MAX } from '../engine/stats.js';
+import { clampHp, clampMp, STAT_MAX } from '../engine/stats.js';
 
 const INITIAL_RELATIONS = { jiyu: 0, kai: 0 };
+
+/* ── 레벨업 누적 EXP 임계값 (레벨 1 → n+1 에 필요한 총 경험치) */
+const EXP_TABLE = [0, 100, 250, 450, 700, 1050, 1500];
+
+/* ── 능력별 레벨업 스탯 증가량 */
+const LEVEL_UP_GAINS = {
+  telekinesis:  { power: 4, control: 1, mental: 1, maxHp: 15, maxMp: 10 },
+  clairvoyance: { power: 1, control: 2, mental: 4, maxHp: 10, maxMp: 20 },
+  mindControl:  { power: 1, control: 3, mental: 3, maxHp: 10, maxMp: 20 },
+  regeneration: { power: 2, control: 1, mental: 3, maxHp: 25, maxMp: 10 },
+};
 
 function applyStatChanges(stats, changes = {}) {
   const next = { ...stats };
@@ -27,34 +38,42 @@ function applyRelationChanges(relations, changes = {}) {
   return next;
 }
 
+/* 레벨에 해당하는 필요 누적 exp 반환 */
+function expForLevel(lv) {
+  return EXP_TABLE[Math.min(lv, EXP_TABLE.length - 1)] ?? 9999;
+}
+
 export const useGameStore = create((set, get) => ({
   /* ── 화면 ── */
-  screen: 'title', // title | awakening | story | combat | shop | rest | event | ending | gameover
+  screen: 'title',
 
   /* ── 플레이어 기본 ── */
   playerName: '',
-  ability: null,      // 'telekinesis' | 'clairvoyance' | 'mind_control' | 'regeneration'
+  ability: null,
   stats: { power: 0, control: 0, mental: 0 },
-  hp: 0,
-  maxHp: 0,
-  mp: 0,
-  maxMp: 0,
+  hp: 0, maxHp: 0,
+  mp: 0, maxMp: 0,
   gold: 0,
+
+  /* ── 레벨 / 경험치 ── */
+  level: 1,
+  totalExp: 0,       // 누적 획득 exp
+  expGainedLast: 0,  // 마지막 전투 획득 exp (레벨업 화면 표시용)
+  levelUpGains: null, // 레벨업 시 실제 적용된 스탯 증가량
 
   /* ── 진행 ── */
   currentNodeId: 'ch1_s0',
-  faction: 0,         // -100(Nexus) ↔ +100(AURA)
+  faction: 0,
   relations: { ...INITIAL_RELATIONS },
-  skills: [],         // 보유 스킬 id 배열
-  inventory: [],      // { ...item, qty }[]
-  equipment: {},      // { armor, accessory }
+  skills: [],
+  inventory: [],
+  equipment: {},
 
   /* ── 전투 ── */
   combat: null,
-  pendingNodeId: null,  // 전투 승리 후 이동할 노드
 
   /* ── 엔딩 ── */
-  endingType: null, // 'aura' | 'nexus'
+  endingType: null,
 
   /* ─────────────────────────────────────── */
   /* ACTIONS                                  */
@@ -67,10 +86,8 @@ export const useGameStore = create((set, get) => ({
     set({
       ability: abilityId,
       stats: { ...ab.initStats },
-      hp: ab.initHp,
-      maxHp: ab.initHp,
-      mp: ab.initMp,
-      maxMp: ab.initMp,
+      hp: ab.initHp, maxHp: ab.initHp,
+      mp: ab.initMp, maxMp: ab.initMp,
       skills: [...ABILITY_SKILLS[abilityId]],
       screen: 'story',
       currentNodeId: 'ch1_s0',
@@ -79,18 +96,19 @@ export const useGameStore = create((set, get) => ({
       inventory: [],
       equipment: {},
       gold: 0,
+      level: 1,
+      totalExp: 0,
+      expGainedLast: 0,
+      levelUpGains: null,
     });
   },
 
-  /* 스토리 / 이벤트 선택지 처리 */
+  /* 스토리 / 이벤트 선택지 */
   makeChoice(choice) {
     const { stats, relations, faction, hp, maxHp, mp, maxMp } = get();
-
     const newStats    = applyStatChanges(stats, choice.statChanges);
     const newRelation = applyRelationChanges(relations, choice.relation ?? {});
     const newFaction  = Math.max(-100, Math.min(100, faction + (choice.faction ?? 0)));
-    const newHp       = clampHp(hp);
-    const newMp       = clampMp(mp);
 
     const nextNode = getNode(choice.next);
     if (!nextNode) return;
@@ -99,32 +117,18 @@ export const useGameStore = create((set, get) => ({
       stats: newStats,
       relations: newRelation,
       faction: newFaction,
-      hp: newHp,
-      mp: newMp,
       currentNodeId: choice.next,
       screen: nextNode.type === 'combat' ? 'combat' : nextNode.type,
-      combat: nextNode.type === 'combat'
-        ? initCombat(nextNode.enemies)
-        : null,
+      combat: nextNode.type === 'combat' ? initCombat(nextNode.enemies) : null,
     });
   },
 
-  /* 스토리/이벤트 → 다음 (선택지 없는 이동) */
   goToNode(nodeId) {
+    if (nodeId === 'gameover')     { set({ screen: 'gameover' }); return; }
+    if (nodeId === 'ending_aura')  { set({ screen: 'ending', endingType: 'aura' }); return; }
+    if (nodeId === 'ending_nexus') { set({ screen: 'ending', endingType: 'nexus' }); return; }
     const node = getNode(nodeId);
     if (!node) return;
-    if (nodeId === 'gameover') {
-      set({ screen: 'gameover' });
-      return;
-    }
-    if (nodeId === 'ending_aura') {
-      set({ screen: 'ending', endingType: 'aura' });
-      return;
-    }
-    if (nodeId === 'ending_nexus') {
-      set({ screen: 'ending', endingType: 'nexus' });
-      return;
-    }
     set({
       currentNodeId: nodeId,
       screen: node.type === 'combat' ? 'combat' : node.type,
@@ -133,7 +137,6 @@ export const useGameStore = create((set, get) => ({
   },
 
   /* ── 전투 액션 ── */
-
   doCombatAttack() {
     const { combat, stats, equipment, ability, hp, maxHp } = get();
     const result = playerAttack(combat, stats, equipment, ability);
@@ -163,15 +166,14 @@ export const useGameStore = create((set, get) => ({
     const { newCombat, hpDelta, mpDelta } = useItemInCombat(
       combat, item, hp, maxHp, mp, maxMp
     );
-    const newInv = inventory.map((it, i) =>
-      i === idx ? { ...it, qty: it.qty - 1 } : it
-    ).filter(it => it.qty > 0);
+    const newInv = inventory
+      .map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it)
+      .filter(it => it.qty > 0);
     const newHp = clampHp(hp + hpDelta);
     const newMp = clampMp(mp + mpDelta);
     get()._afterPlayerAction(newCombat, newHp, maxHp, newMp, newInv);
   },
 
-  /* 플레이어 행동 후 공통 처리 */
   _afterPlayerAction(newCombat, newHp, maxHp, newMp, newInv) {
     const { mp, inventory } = get();
     const usedMp  = newMp  !== undefined ? newMp  : mp;
@@ -181,19 +183,14 @@ export const useGameStore = create((set, get) => ({
       get()._handleCombatWin(newCombat, newHp, usedMp, usedInv);
       return;
     }
-
     set({ combat: newCombat, hp: newHp, mp: usedMp, inventory: usedInv });
-
-    if (newCombat.phase === 'enemy') {
-      get().doEnemyTurn();
-    }
+    if (newCombat.phase === 'enemy') get().doEnemyTurn();
   },
 
   doEnemyTurn() {
     const { combat, stats, equipment, ability, hp } = get();
     const { newCombat, hpDelta } = enemyTurn(combat, stats, equipment, ability, hp);
     const newHp = clampHp(hp + hpDelta);
-
     if (newCombat.phase === 'lose' || newHp <= 0) {
       set({ combat: newCombat, hp: 0, screen: 'gameover' });
       return;
@@ -201,14 +198,63 @@ export const useGameStore = create((set, get) => ({
     set({ combat: newCombat, hp: newHp });
   },
 
+  /* 전투 승리 처리 + 경험치/레벨업 */
   _handleCombatWin(newCombat, newHp, newMp, newInv) {
-    const node = getNode(get().currentNodeId);
+    const { currentNodeId, gold, level, totalExp, ability, stats, maxHp, maxMp } = get();
+    const node = getNode(currentNodeId);
     const goldGain = node?.goldReward ?? 0;
-    const newGold  = get().gold + goldGain;
-    const nextId   = node?.onWin;
 
-    set({ combat: null, hp: newHp, mp: newMp, inventory: newInv, gold: newGold });
+    // 경험치: 쓰러진 적 합산
+    const expGain = newCombat.enemies.reduce((sum, e) => sum + (e.expReward ?? 0), 0);
+    const newTotalExp = totalExp + expGain;
 
+    // 레벨업 체크 (연속 레벨업 허용)
+    let newLevel = level;
+    let newStats = { ...stats };
+    let newMaxHp = maxHp;
+    let newMaxMp = maxMp;
+    let gains = null;
+
+    while (newLevel < EXP_TABLE.length && newTotalExp >= expForLevel(newLevel)) {
+      newLevel++;
+      const g = LEVEL_UP_GAINS[ability] ?? { power: 2, control: 2, mental: 2, maxHp: 15, maxMp: 10 };
+      newStats = applyStatChanges(newStats, { power: g.power, control: g.control, mental: g.mental });
+      newMaxHp += g.maxHp;
+      newMaxMp += g.maxMp;
+      gains = g; // 마지막 레벨업 gains
+    }
+
+    const didLevelUp = newLevel > level;
+
+    set({
+      combat: null,
+      hp: Math.min(newHp, newMaxHp),
+      mp: Math.min(newMp, newMaxMp),
+      inventory: newInv,
+      gold: gold + goldGain,
+      totalExp: newTotalExp,
+      expGainedLast: expGain,
+      level: newLevel,
+      stats: newStats,
+      maxHp: newMaxHp,
+      maxMp: newMaxMp,
+      levelUpGains: didLevelUp ? gains : null,
+    });
+
+    if (didLevelUp) {
+      // 레벨업 화면 먼저 보여주고 이후 다음 노드로
+      set({ screen: 'levelup' });
+    } else {
+      const nextId = node?.onWin;
+      if (nextId) get().goToNode(nextId);
+    }
+  },
+
+  /* 레벨업 화면에서 확인 후 다음 노드 이동 */
+  confirmLevelUp() {
+    const node = getNode(get().currentNodeId);
+    const nextId = node?.onWin;
+    set({ levelUpGains: null });
     if (nextId) get().goToNode(nextId);
   },
 
@@ -217,24 +263,20 @@ export const useGameStore = create((set, get) => ({
     const { gold, inventory } = get();
     if (gold < item.price) return;
     const idx = inventory.findIndex(i => i.id === item.id);
-    let newInv;
-    if (idx >= 0) {
-      newInv = inventory.map((it, i) => i === idx ? { ...it, qty: it.qty + 1 } : it);
-    } else {
-      newInv = [...inventory, { ...item, qty: 1 }];
-    }
+    const newInv = idx >= 0
+      ? inventory.map((it, i) => i === idx ? { ...it, qty: it.qty + 1 } : it)
+      : [...inventory, { ...item, qty: 1 }];
     set({ gold: gold - item.price, inventory: newInv });
   },
 
   equipItem(item) {
     const { equipment, inventory } = get();
-    const slot = item.slot; // 'armor' | 'accessory'
+    const slot = item.slot;
     if (!slot) return;
-    const newEquip = { ...equipment, [slot]: item };
-    const newInv = inventory.map(it =>
-      it.id === item.id ? { ...it, qty: it.qty - 1 } : it
-    ).filter(it => it.qty > 0);
-    set({ equipment: newEquip, inventory: newInv });
+    const newInv = inventory
+      .map(it => it.id === item.id ? { ...it, qty: it.qty - 1 } : it)
+      .filter(it => it.qty > 0);
+    set({ equipment: { ...equipment, [slot]: item }, inventory: newInv });
   },
 
   /* ── 휴식 ── */
@@ -252,20 +294,15 @@ export const useGameStore = create((set, get) => ({
   resetGame() {
     set({
       screen: 'title',
-      playerName: '',
-      ability: null,
+      playerName: '', ability: null,
       stats: { power: 0, control: 0, mental: 0 },
       hp: 0, maxHp: 0, mp: 0, maxMp: 0,
       gold: 0,
+      level: 1, totalExp: 0, expGainedLast: 0, levelUpGains: null,
       currentNodeId: 'ch1_s0',
-      faction: 0,
-      relations: { ...INITIAL_RELATIONS },
-      skills: [],
-      inventory: [],
-      equipment: {},
-      combat: null,
-      pendingNodeId: null,
-      endingType: null,
+      faction: 0, relations: { ...INITIAL_RELATIONS },
+      skills: [], inventory: [], equipment: {},
+      combat: null, endingType: null,
     });
   },
 }));

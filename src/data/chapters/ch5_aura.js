@@ -3,21 +3,17 @@ export const chapter5_aura = {
   id: 'ch5_aura',
   title: '정점 — AURA의 길',
   nodes: [
-
-    /* 5-1. 작전 브리핑 */
     {
       id: 'ch5_aura_s0', type: 'story',
       image: null,
       title: 'Echo를 향해',
       text: `지유가 작전 지도를 펼친다.\n\n"Echo. Nexus의 지도자. 실명 불명, 외모 불명. 알려진 것은 하나 — 강력한 정신조작 능력으로 수십 명의 각성자를 세뇌했다는 것."\n\n"오라클도, 카이도 그의 지시를 받았습니다. 그를 제압하면 Nexus는 와해됩니다."\n\n당신은 깊게 숨을 들이마신다.`,
       choices: [
-        { text: '"어디 있습니까"',           next: 'ch5_aura_combat1', statChanges: { power: 2  }, faction: 10 },
-        { text: '"Echo의 능력에 대해 더 알고 싶습니다"', next: 'ch5_aura_combat1', statChanges: { mental: 3 }, faction: 5  },
-        { text: '"후회는 없습니다. 갑시다."', next: 'ch5_aura_combat1', statChanges: { control: 2 }, faction: 5  },
+        { text: '"어디 있습니까"',                           next: 'ch5_aura_combat1', faction: 10 },
+        { text: '"Echo의 능력에 대해 더 알고 싶습니다"',    next: 'ch5_aura_combat1', faction: 5  },
+        { text: '"후회는 없습니다. 갑시다."',               next: 'ch5_aura_combat1', faction: 5  },
       ],
     },
-
-    /* 5-2. Nexus 요원 돌파 */
     {
       id: 'ch5_aura_combat1', type: 'combat',
       image: null,
@@ -28,20 +24,16 @@ export const chapter5_aura = {
       onWin:  'ch5_aura_event1',
       onLose: 'gameover',
     },
-
-    /* 5-3. 이벤트: 세뇌된 각성자들 */
     {
       id: 'ch5_aura_event1', type: 'event',
       image: null,
       title: '세뇌의 흔적',
       text: `거점 내부. 쓰러진 Nexus 요원들 사이에 멍한 눈빛의 각성자들이 있다. 세뇌 상태.\n\n지유가 빠르게 치료팀을 부른다. "이들은 피해자예요. Echo의 능력으로 조종당한 겁니다."\n\n그 중 한 명이 희미하게 말한다. "...Echo는... 지하에 있어요... 여기 지하..."`,
       choices: [
-        { text: '부상자를 먼저 후송시킨다',      next: 'ch5_aura_combat2', faction: 10, relation: { jiyu: 5 }, statChanges: { control: 2 }, resultText: '"감사합니다." 지유가 조용히 말했다.' },
-        { text: '정보를 더 캐낸 후 전진한다',     next: 'ch5_aura_combat2', faction: 0,  statChanges: { mental: 3 }, resultText: '"지하 3층. 방호 능력 최대화 상태." 그는 더 이상 말하지 못했다.' },
+        { text: '부상자를 먼저 후송시킨다', next: 'ch5_aura_combat2', faction: 10, relation: { jiyu: 5 }, resultText: '"감사합니다." 지유가 조용히 말했다.' },
+        { text: '정보를 더 캐낸 후 전진한다', next: 'ch5_aura_combat2', faction: 0, resultText: '"지하 3층. 방호 능력 최대화 상태." 그는 더 이상 말하지 못했다.' },
       ],
     },
-
-    /* 5-4. 중간 보스: Nexus Lieutenant */
     {
       id: 'ch5_aura_combat2', type: 'combat',
       image: null,
@@ -52,8 +44,6 @@ export const chapter5_aura = {
       onWin:  'ch5_aura_rest1',
       onLose: 'gameover',
     },
-
-    /* 5-5. 최종 전 휴식 */
     {
       id: 'ch5_aura_rest1', type: 'rest',
       image: null,
@@ -62,21 +52,17 @@ export const chapter5_aura = {
       restAmount: { hp: 400, mp: 300 },
       next: 'ch5_aura_boss',
     },
-
-    /* 5-6. 최종 보스 전 대화 */
     {
       id: 'ch5_aura_boss', type: 'story',
       image: null,
       title: 'Echo',
       text: `지하 최심층. 빛 한 줄기 없는 공간.\n\n"왔군요."\n\n목소리는 사방에서 들린다. 어디서 오는지 알 수 없다.\n\n"AURA를 택했다고 했나요? 그들이 당신을 처분 대상에 올렸는데도?"\n\n어둠 속에서 형체가 나타난다. 놀랍도록 평범한 얼굴.\n\n"나는 그들에게서 구하려 했을 뿐이에요. 방법이 틀렸을지라도."`,
       choices: [
-        { text: '"변명은 됐어."',                     next: 'ch5_aura_final', statChanges: { power: 3   }, faction: 10 },
-        { text: '"그래도 세뇌는 용납할 수 없다."',   next: 'ch5_aura_final', statChanges: { control: 3  }, faction: 5  },
-        { text: '"...당신이 옳을 수도 있어. 그래도 막아야 해."', next: 'ch5_aura_final', statChanges: { mental: 4 }, faction: 0 },
+        { text: '"변명은 됐어."',                                     next: 'ch5_aura_final', faction: 10 },
+        { text: '"그래도 세뇌는 용납할 수 없다."',                   next: 'ch5_aura_final', faction: 5  },
+        { text: '"...당신이 옳을 수도 있어. 그래도 막아야 해."',     next: 'ch5_aura_final', faction: 0  },
       ],
     },
-
-    /* 5-7. 최종 보스 전투 */
     {
       id: 'ch5_aura_final', type: 'combat',
       image: null,

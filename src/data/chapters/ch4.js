@@ -11,9 +11,9 @@ export const chapter4 = {
       title: 'AURA 기밀 서버',
       text: `지유가 긴박하게 연락을 해온다.\n\n"AURA 본부 지하 서버실에 침투해야 합니다. 누군가 내부 데이터를 외부로 유출하고 있어요."\n\n그런데 목적지에 도착하니 카이가 먼저 와 있다. 노트북에 연결된 케이블, 복사 중인 파일들.\n\n그의 표정은 당신을 보자 굳는다. "...왔군요."`,
       choices: [
-        { text: '"뭘 하는 거야, 카이."',             next: 'ch4_s1', statChanges: { mental: 2 }, faction: 5  },
-        { text: '"같이 해. 파일 더 빨리 뽑아낼게."', next: 'ch4_s1', statChanges: { power: 1  }, faction: -10, relation: { kai: 10 } },
-        { text: '아무 말 없이 상황을 파악한다',       next: 'ch4_s1', statChanges: { mental: 3 }, faction: 0  },
+        { text: '"뭘 하는 거야, 카이."',              next: 'ch4_s1', faction: 5  },
+        { text: '"같이 해. 파일 더 빨리 뽑아낼게."', next: 'ch4_s1', faction: -10, relation: { kai: 10 } },
+        { text: '아무 말 없이 상황을 파악한다',        next: 'ch4_s1', faction: 0  },
       ],
     },
 
@@ -24,38 +24,38 @@ export const chapter4 = {
       title: '지유의 진심',
       text: `경보가 울리기 직전, 지유가 서버실로 뛰어 들어온다. 카이를 보는 그녀의 눈빛.\n\n"...이 사람은 제가 압니다."\n\n지유가 조용히 말한다. "카이는 3년 전까지 AURA 요원이었어요. 제가 훈련시켰습니다. 그리고... 제가 격리 명령에 서명했습니다."\n\n카이가 차갑게 웃는다. "그래서 탈출한 거야. 그리고 Nexus를 만들었어. 너희에게 잡힌 사람들을 구하려고."`,
       choices: [
-        { text: '"지유, 당신은 뭘 믿습니까"',  next: 'ch4_s2', statChanges: { mental: 2 }, faction: 0  },
-        { text: '"카이, 그 파일에 뭐가 있어"', next: 'ch4_s2', statChanges: { mental: 2 }, faction: -5, relation: { kai: 5  } },
-        { text: '"둘 다 진실을 말하는 것 같다"', next: 'ch4_s2', statChanges: { control: 2 }, faction: 0 },
+        { text: '"지유, 당신은 뭘 믿습니까"',      next: 'ch4_s2', faction: 0  },
+        { text: '"카이, 그 파일에 뭐가 있어"',     next: 'ch4_s2', faction: -5, relation: { kai: 5  } },
+        { text: '"둘 다 진실을 말하는 것 같다"',   next: 'ch4_s2', faction: 0  },
       ],
     },
 
-    /* 4-3. 파일 공개 */
+    /* 4-3. 파일 공개 ★ 특별 이벤트 — statChanges 유지 */
     {
       id: 'ch4_s2', type: 'event',
       image: null,
       title: '처분 명령서',
       text: `카이가 파일을 화면에 띄운다.\n\n**처분 가능 등급 목록.** 이름, 능력, 각성 날짜. 그리고 처리 방법란에는 — "영구 격리" 또는 "기억 소거".\n\n당신의 이름도 있다. 처리 방법란은 아직 공란.`,
       choices: [
-        { text: '"지유, 이걸 알고 있었습니까"',       next: 'ch4_faction', statChanges: { mental: 3 }, faction: -10, relation: { jiyu: -10 } },
-        { text: '"조작된 문서일 수 있어."',           next: 'ch4_faction', statChanges: { control: 2 }, faction: 10, relation: { kai: -5 } },
-        { text: '조용히 파일을 저장한다',              next: 'ch4_faction', statChanges: { mental: 4 }, faction: 0 },
+        { text: '"지유, 이걸 알고 있었습니까"', next: 'ch4_faction', faction: -10, relation: { jiyu: -10 }, statChanges: { mental: 4 }, resultText: '지유가 입을 다문다. 그 침묵이 답이었다.' },
+        { text: '"조작된 문서일 수 있어."',      next: 'ch4_faction', faction: 10,  relation: { kai: -5  }, statChanges: { control: 2 }, resultText: '카이가 한숨을 내쉰다. "당신 이름이 거기 있는데도?"' },
+        { text: '조용히 파일을 저장한다',         next: 'ch4_faction', faction: 0,                         statChanges: { mental: 3 }, resultText: '어느 쪽도 100% 믿을 수 없다. 직접 확인해야 한다.' },
       ],
     },
 
-    /* 4-4. 진영 선택 (핵심) */
+    /* 4-4. 진영 선택 */
     {
       id: 'ch4_faction', type: 'story',
       image: null,
       title: '갈림길',
       text: `경보가 전 층으로 퍼진다. AURA 기동대가 15분 내로 도착할 것이다.\n\n지유가 당신에게 손을 내민다. "저와 함께라면 이 모든 걸 내부에서 바꿀 수 있어요."\n\n카이가 반대편에서 말한다. "우리와 합류해. 바깥에서 무너뜨리는 게 더 빨라."\n\n선택할 시간이 없다.`,
       choices: [
-        { text: '지유의 손을 잡는다 — AURA에 남는다',   next: 'ch4_aura_fight',  faction: 30,  relation: { jiyu: 20, kai: -30 } },
-        { text: '카이를 따라간다 — Nexus에 합류한다',   next: 'ch4_nexus_fight', faction: -30, relation: { kai: 30, jiyu: -20 } },
+        { text: '지유의 손을 잡는다 — AURA에 남는다', next: 'ch4_aura_fight',  faction: 30,  relation: { jiyu: 20, kai: -30 } },
+        { text: '카이를 따라간다 — Nexus에 합류한다', next: 'ch4_nexus_fight', faction: -30, relation: { kai: 30, jiyu: -20 } },
       ],
     },
 
-    /* 4-5a. AURA 선택 → 카이와 강제 전투 */
+    /* 4-5a. AURA 선택 → 카이 전투 */
     {
       id: 'ch4_aura_fight', type: 'combat',
       image: null,
@@ -67,7 +67,7 @@ export const chapter4 = {
       onLose: 'gameover',
     },
 
-    /* 4-5b. Nexus 선택 → 지유와 강제 전투 */
+    /* 4-5b. Nexus 선택 → 지유 전투 */
     {
       id: 'ch4_nexus_fight', type: 'combat',
       image: null,
@@ -99,7 +99,7 @@ export const chapter4 = {
       next: 'ch4_shop_nexus',
     },
 
-    /* 4-7a. AURA 상점 */
+    /* 4-7a/b. 상점 */
     {
       id: 'ch4_shop_aura', type: 'shop',
       image: null,
@@ -108,8 +108,6 @@ export const chapter4 = {
       text: '지유가 고급 장비 접근 권한을 열어준다. "최종 작전을 위해 준비하세요."',
       next: 'ch5_aura_s0',
     },
-
-    /* 4-7b. Nexus 상점 */
     {
       id: 'ch4_shop_nexus', type: 'shop',
       image: null,

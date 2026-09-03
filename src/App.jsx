@@ -10,6 +10,7 @@ import RestScreen      from './components/screens/RestScreen.jsx';
 import EventScreen     from './components/screens/EventScreen.jsx';
 import EndingScreen    from './components/screens/EndingScreen.jsx';
 import GameOverScreen  from './components/screens/GameOverScreen.jsx';
+import LevelUpScreen   from './components/screens/LevelUpScreen.jsx';
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -34,13 +35,14 @@ const SCREEN_MAP = {
   shop:      ShopScreen,
   rest:      RestScreen,
   event:     EventScreen,
+  levelup:   LevelUpScreen,
   ending:    EndingScreen,
   gameover:  GameOverScreen,
 };
 
 export default function App() {
   const screen = useGameStore(s => s.screen);
-  const showHud = !['title', 'awakening', 'ending', 'gameover'].includes(screen);
+  const showHud = !['title', 'awakening', 'ending', 'gameover', 'levelup'].includes(screen);
 
   const Screen = SCREEN_MAP[screen] ?? TitleScreen;
 
