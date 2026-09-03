@@ -4,7 +4,7 @@ import { ABILITIES } from '../../data/abilities.js';
 const ABILITY_DESCS = {
   telekinesis:   { label: '염동력',   icon: '🌪', desc: '물리력으로 공간을 지배한다.\n높은 공격력, 공격 시 1.3× 보정', color: '#ef5350' },
   clairvoyance:  { label: '투시',     icon: '👁', desc: '적의 행동을 예측하고 회피한다.\n15% 자동 회피, 높은 정신력',   color: '#4fc3f7' },
-  mind_control:  { label: '정신조작', icon: '🧠', desc: '적을 조종하거나 무력화한다.\n디버프 기술, 높은 제어력',         color: '#ce93d8' },
+  mindControl:   { label: '정신조작', icon: '🧠', desc: '적을 조종하거나 무력화한다.\n디버프 기술, 높은 제어력',         color: '#ce93d8' },
   regeneration:  { label: '재생',     icon: '💚', desc: '자신의 상처를 빠르게 회복한다.\n최고 HP, 회복 기술 보유',          color: '#66bb6a' },
 };
 

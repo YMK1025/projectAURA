@@ -1,6 +1,6 @@
 import { useGameStore } from '../../store/useGameStore.js';
 import { getNode } from '../../data/chapters/index.js';
-import { SHOP_INVENTORIES } from '../../data/items.js';
+import { ITEMS, SHOP_INVENTORIES } from '../../data/items.js';
 import ImagePanel from '../ui/ImagePanel.jsx';
 
 export default function ShopScreen() {
@@ -8,7 +8,8 @@ export default function ShopScreen() {
   const node = getNode(currentNodeId);
   if (!node) return null;
 
-  const shopItems = SHOP_INVENTORIES[node.shopId] ?? [];
+  const shopItemIds = SHOP_INVENTORIES[node.shopId] ?? [];
+  const shopItems = shopItemIds.map(id => ITEMS[id]).filter(Boolean);
 
   function getQty(itemId) {
     return inventory.find(i => i.id === itemId)?.qty ?? 0;

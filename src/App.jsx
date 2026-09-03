@@ -1,3 +1,4 @@
+import { Component } from 'react';
 import { useGameStore } from './store/useGameStore.js';
 import HUD from './components/ui/HUD.jsx';
 import TitleScreen     from './components/screens/TitleScreen.jsx';
@@ -9,6 +10,21 @@ import RestScreen      from './components/screens/RestScreen.jsx';
 import EventScreen     from './components/screens/EventScreen.jsx';
 import EndingScreen    from './components/screens/EndingScreen.jsx';
 import GameOverScreen  from './components/screens/GameOverScreen.jsx';
+
+class ErrorBoundary extends Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, color: '#ef5350', fontFamily: 'monospace', whiteSpace: 'pre-wrap' }}>
+          <b>오류 발생:</b>{'\n'}{String(this.state.error)}
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const SCREEN_MAP = {
   title:     TitleScreen,
@@ -29,6 +45,7 @@ export default function App() {
   const Screen = SCREEN_MAP[screen] ?? TitleScreen;
 
   return (
+    <ErrorBoundary>
     <div style={{
       minHeight: '100vh',
       background: '#070711',
@@ -74,5 +91,6 @@ export default function App() {
         </div>
       </div>
     </div>
+    </ErrorBoundary>
   );
 }
