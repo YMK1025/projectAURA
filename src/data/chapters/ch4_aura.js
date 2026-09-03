@@ -4,7 +4,6 @@ export const chapter4_aura = {
   title: '내부의 적 — AURA의 길',
   nodes: [
 
-    /* 4A-1. AURA 합류 직후 */
     {
       id: 'ch4a_s0', type: 'story',
       title: '내부에서',
@@ -16,19 +15,29 @@ export const chapter4_aura = {
       ],
     },
 
-    /* 4A-2. Echo의 변질 */
     {
       id: 'ch4a_s1', type: 'story',
       title: 'Echo의 그림자',
-      text: `"Echo는 처음에는 각성자의 자유를 위해 싸운 사람이었어요." 지유가 파일을 펼친다.\n\n"하지만 최근 6개월. Nexus가 변했습니다. 무고한 각성자들을 강제로 세뇌해 세력을 키우고 있어요. 오라클과 다를 게 없이."\n\n"Echo는 이제 초능력자가 인간 세계를 지배해야 한다고 믿어요. 자유가 아니라 지배."\n\n당신은 처음으로 카이의 선택이 어떤 결과를 낳을지 걱정이 된다.`,
+      text: `"Echo는 처음에는 각성자의 자유를 위해 싸운 사람이었어요." 지유가 파일을 펼친다.\n\n"하지만 최근 6개월. Nexus가 변했습니다. 무고한 각성자들을 강제로 세뇌해 세력을 키우고 있어요."\n\n"Echo는 이제 초능력자가 인간 세계를 지배해야 한다고 믿어요. 그를 막지 않으면 Nexus는 오라클보다 더 위험한 조직이 돼요."\n\n그 때, 외곽 경보가 울린다. Nexus 요원들이 기지로 접근 중이다.`,
       choices: [
-        { text: '"카이는 그걸 모르고 있을 거야."',   next: 'ch4a_combat1', faction: 0, relation: { kai: 5 } },
-        { text: '"Echo를 막아야 합니다."',            next: 'ch4a_combat1', faction: 10 },
-        { text: '"오라클도 막고 Echo도 막아야 하는군요."', next: 'ch4a_combat1', faction: 5  },
+        { text: '"카이는 그걸 모르고 있을 거야."',   next: 'ch4a_combat0b', faction: 0, relation: { kai: 5 } },
+        { text: '"Echo를 막아야 합니다."',            next: 'ch4a_combat0b', faction: 10 },
+        { text: '"먼저 들어오는 자들부터."',          next: 'ch4a_combat0b', faction: 5  },
       ],
     },
 
-    /* 4A-3. 카이와의 전투 */
+    /* 전투 4 (분기): Nexus 선발대 */
+    {
+      id: 'ch4a_combat0b', type: 'combat',
+      title: 'Nexus 선발대',
+      preText: 'AURA 기지 외곽. Nexus 정예 요원들이 기지를 압박하고 있다.\n\n"카이의 명령인지는 모르겠지만 — 막아야 해요." 지유가 자세를 잡는다.',
+      enemies: ['nexus_elite', 'nexus_agent'],
+      goldReward: 180,
+      onWin:  'ch4a_combat1',
+      onLose: 'gameover',
+    },
+
+    /* 보스: 카이 */
     {
       id: 'ch4a_combat1', type: 'combat',
       title: '동료였던 자',
@@ -39,7 +48,6 @@ export const chapter4_aura = {
       onLose: 'gameover',
     },
 
-    /* 4A-4. 결의 */
     {
       id: 'ch4a_rest1', type: 'rest',
       title: '결의',
@@ -48,7 +56,6 @@ export const chapter4_aura = {
       next: 'ch4a_shop1',
     },
 
-    /* 4A-5. 상점 */
     {
       id: 'ch4a_shop1', type: 'shop',
       title: 'AURA 고급 보급소',

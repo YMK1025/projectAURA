@@ -4,7 +4,6 @@ export const chapter1 = {
   title: '첫 번째 접촉',
   nodes: [
 
-    /* 1-1. 지하철 각성 */
     {
       id: 'ch1_s0', type: 'story',
       title: '세계의 균열',
@@ -16,7 +15,6 @@ export const chapter1 = {
       ],
     },
 
-    /* 1-2. 지유와 만남 */
     {
       id: 'ch1_s1', type: 'story',
       title: '프로젝트 AURA',
@@ -28,18 +26,39 @@ export const chapter1 = {
       ],
     },
 
-    /* 1-3. 첫 전투 */
+    /* 전투 1: 기지 침입자 */
     {
       id: 'ch1_combat1', type: 'combat',
       title: '침입자 처리',
       preText: '기지에 합류한 지 이틀째, 낯선 침입자가 기지에 나타났다.\n\n지유가 차갑게 말한다. "실전 경험을 쌓을 기회군요."',
       enemies: ['aura_guard'],
       goldReward: 60,
+      onWin:  'ch1_s1b',
+      onLose: 'gameover',
+    },
+
+    /* 전투 2: Nexus 감시 요원 */
+    {
+      id: 'ch1_s1b', type: 'story',
+      title: 'Nexus의 시선',
+      text: `침입자를 처리한 직후, 기지 외부 감시 카메라에 수상한 인물이 잡힌다.\n\n"Nexus 요원이에요." 지유가 긴장한 목소리로 말한다. "우리 기지를 감시하고 있었어요. 처리해야 합니다."`,
+      choices: [
+        { text: '"제가 하겠습니다."',    next: 'ch1_combat1b', faction: 10 },
+        { text: '"지유와 함께 가자."',   next: 'ch1_combat1b', faction: 5  },
+        { text: '"왜 우릴 감시하는 거지?"', next: 'ch1_combat1b', faction: -5, relation: { kai: 3 } },
+      ],
+    },
+
+    {
+      id: 'ch1_combat1b', type: 'combat',
+      title: 'Nexus 감시 요원',
+      preText: '기지 외벽 골목. 후드를 깊게 눌러쓴 요원이 도주를 시도한다.\n\n"잡아야 해요." 지유가 앞서 달린다.',
+      enemies: ['nexus_agent'],
+      goldReward: 70,
       onWin:  'ch1_rest1',
       onLose: 'gameover',
     },
 
-    /* 1-4. 휴식 */
     {
       id: 'ch1_rest1', type: 'rest',
       title: 'AURA 회복 구역',
@@ -48,7 +67,6 @@ export const chapter1 = {
       next: 'ch1_event1',
     },
 
-    /* 1-5. 이벤트: 카이 첫 등장 */
     {
       id: 'ch1_event1', type: 'event',
       title: '수상한 메시지',
@@ -60,7 +78,6 @@ export const chapter1 = {
       ],
     },
 
-    /* 1-6. 상점 */
     {
       id: 'ch1_shop1', type: 'shop',
       title: 'AURA 보급소',
@@ -69,7 +86,6 @@ export const chapter1 = {
       next: 'ch1_s2',
     },
 
-    /* 1-7. 폭주 각성자 출몰 신고 (NEW) */
     {
       id: 'ch1_s2', type: 'story',
       title: '폭주 신호',
@@ -81,22 +97,32 @@ export const chapter1 = {
       ],
     },
 
-    /* 1-8. 폭주 각성자 전투 (NEW) */
+    /* 전투 3: 폭주 각성자 */
     {
       id: 'ch1_combat2', type: 'combat',
       title: '폭주 각성자 진압',
       preText: '마포구 골목길. 두 명의 청년이 제어를 잃은 채 날뛰고 있다.\n\n주변 유리창이 산산이 부서지고 있다. 민간인들이 비명을 지르며 달아난다.',
       enemies: ['rogue_awakened', 'rogue_awakened'],
       goldReward: 90,
+      onWin:  'ch1_combat2b',
+      onLose: 'gameover',
+    },
+
+    /* 전투 4: 나비 접근을 막으려는 오라클 */
+    {
+      id: 'ch1_combat2b', type: 'combat',
+      title: '오라클의 그림자',
+      preText: '폭주자들을 진정시키는 사이, 골목 저편에서 또 다른 무리가 나타난다.\n\n로브를 걸친 자들이 폭주한 각성자를 데려가려 한다. 오라클이다.\n\n"막아야 해요." 지유가 즉시 자세를 잡는다.',
+      enemies: ['oracle_follower', 'oracle_follower'],
+      goldReward: 100,
       onWin:  'ch1_s3',
       onLose: 'gameover',
     },
 
-    /* 1-9. 나비 추적 (NEW) */
     {
       id: 'ch1_s3', type: 'story',
       title: '나비',
-      text: `제압된 폭주 각성자들을 돌보던 중, 지유가 단말기를 들여다본다.\n\n"신호가 있어요. 이들의 능력 주파수와 동일한 패턴 — 약 300미터 떨어진 옥상에서."\n\n옥상에 도착하자, 한 소녀가 서 있다. 열일곱 살쯤 돼 보이는 앳된 얼굴.\n\n그녀의 등 뒤로 빛이 흩날린다. 나비 날개처럼.\n\n"...멈추고 싶어. 그런데 멈출 수가 없어."`,
+      text: `오라클을 쫓아낸 뒤, 신호가 300미터 옥상에서 잡힌다.\n\n옥상에 도착하자, 한 소녀가 서 있다. 열일곱 살쯤 돼 보이는 앳된 얼굴.\n\n그녀의 등 뒤로 빛이 흩날린다. 나비 날개처럼.\n\n"...멈추고 싶어. 그런데 멈출 수가 없어."`,
       choices: [
         { text: '"괜찮아. 우리가 도와줄게."',         next: 'ch1_boss', faction: 5,  relation: { jiyu: 3 } },
         { text: '"능력을 풀어. 그럼 다 끝나."',        next: 'ch1_boss', faction: 0  },
@@ -104,7 +130,7 @@ export const chapter1 = {
       ],
     },
 
-    /* 1-10. 챕터 1 보스: 나비 (NEW) */
+    /* 보스 */
     {
       id: 'ch1_boss', type: 'combat',
       title: '폭주하는 나비',
@@ -115,7 +141,6 @@ export const chapter1 = {
       onLose: 'gameover',
     },
 
-    /* 1-11. 챕터 1 클리어 휴식 (NEW) */
     {
       id: 'ch1_rest2', type: 'rest',
       title: '나비의 귀환',

@@ -4,7 +4,6 @@ export const chapter2 = {
   title: '수련',
   nodes: [
 
-    /* 2-1. 훈련 시작 */
     {
       id: 'ch2_s0', type: 'story',
       title: '통제와 해방 사이',
@@ -16,18 +15,28 @@ export const chapter2 = {
       ],
     },
 
-    /* 2-2. 훈련 전투 */
+    /* 전투 1: 훈련 드론 */
     {
       id: 'ch2_combat1', type: 'combat',
       title: '훈련 드론 격파',
       preText: '오작동한 훈련 드론 두 대가 당신을 향해 돌진한다.\n\n"0.3초 안에 반응해야 합니다." 리온의 목소리는 냉정하다.',
       enemies: ['aura_guard', 'aura_guard'],
       goldReward: 80,
+      onWin:  'ch2_combat1b',
+      onLose: 'gameover',
+    },
+
+    /* 전투 2: Nexus 훈련구역 침입 */
+    {
+      id: 'ch2_combat1b', type: 'combat',
+      title: 'Nexus 침입자',
+      preText: '훈련이 끝난 직후 경보가 울린다. Nexus 요원 둘이 훈련 구역 담을 넘어 들어왔다.\n\n"데이터를 노리는 겁니다." 리온이 무기를 집어든다. "막아요."',
+      enemies: ['nexus_agent', 'nexus_agent'],
+      goldReward: 90,
       onWin:  'ch2_skill_learn',
       onLose: 'gameover',
     },
 
-    /* 2-3. 계열 스킬 습득 (NEW) */
     {
       id: 'ch2_skill_learn', type: 'skill_learn',
       title: '능력 심화',
@@ -40,7 +49,6 @@ export const chapter2 = {
       next: 'ch2_event1',
     },
 
-    /* 2-4. 카이와 비밀 접촉 */
     {
       id: 'ch2_event1', type: 'event',
       title: '기지 아래의 목소리',
@@ -52,7 +60,6 @@ export const chapter2 = {
       ],
     },
 
-    /* 2-5. 상점 */
     {
       id: 'ch2_shop1', type: 'shop',
       title: 'AURA 보급소',
@@ -61,7 +68,6 @@ export const chapter2 = {
       next: 'ch2_s1',
     },
 
-    /* 2-6. 첫 임무 지령 */
     {
       id: 'ch2_s1', type: 'story',
       title: '첫 임무',
@@ -73,7 +79,6 @@ export const chapter2 = {
       ],
     },
 
-    /* 2-7. 현장 도착 (NEW) */
     {
       id: 'ch2_s2', type: 'story',
       title: '마포구 그림자',
@@ -85,22 +90,32 @@ export const chapter2 = {
       ],
     },
 
-    /* 2-8. 현장 전투 (NEW) */
+    /* 전투 3: 오라클+Nexus 연합 */
     {
       id: 'ch2_combat2', type: 'combat',
       title: '오라클 추종자 제압',
       preText: '대화는 통하지 않는다. 그들은 이미 세뇌 상태다.\n\n적들이 동시에 달려든다.',
       enemies: ['oracle_follower', 'nexus_agent'],
       goldReward: 120,
+      onWin:  'ch2_combat2b',
+      onLose: 'gameover',
+    },
+
+    /* 전투 4: 야차 외곽 경비 */
+    {
+      id: 'ch2_combat2b', type: 'combat',
+      title: '창고 외곽 경비',
+      preText: '제압한 Nexus 요원의 단말기를 통해 야차의 거점 위치를 파악했다.\n\n창고 입구. 오라클 추종자들이 경비를 서고 있다.',
+      enemies: ['oracle_follower', 'oracle_follower'],
+      goldReward: 110,
       onWin:  'ch2_event2',
       onLose: 'gameover',
     },
 
-    /* 2-9. 야차 발견 (NEW) */
     {
       id: 'ch2_event2', type: 'event',
       title: '야차의 흔적',
-      text: `제압한 Nexus 요원이 정신을 차리며 중얼거린다.\n\n"...야차가... 오라클과 거래를... 각성자를 넘기는 대가로..."\n\n지유가 눈빛을 굳힌다. "야차. Nexus 내부 강경파 요원이에요. 오라클과 연계해서 각성자들을 팔아넘기고 있었던 거군요."\n\n단말기에 신호가 잡힌다. 100미터 앞에 야차가 있다.`,
+      text: `제압한 Nexus 요원이 정신을 차리며 중얼거린다.\n\n"...야차가... 오라클과 거래를... 각성자를 넘기는 대가로..."\n\n지유가 눈빛을 굳힌다. "야차. Nexus 내부 강경파 요원이에요. 오라클과 연계해서 각성자들을 팔아넘기고 있었던 거군요."\n\n단말기에 신호가 잡힌다. 야차가 창고 안에 있다.`,
       choices: [
         { text: '즉시 추적한다',                 next: 'ch2_boss', faction: 5  },
         { text: '지원을 요청한 후 접근한다',      next: 'ch2_boss', faction: 10 },
@@ -108,7 +123,7 @@ export const chapter2 = {
       ],
     },
 
-    /* 2-10. 챕터 2 보스: 야차 (NEW) */
+    /* 보스 */
     {
       id: 'ch2_boss', type: 'combat',
       title: '야차',
@@ -119,7 +134,6 @@ export const chapter2 = {
       onLose: 'gameover',
     },
 
-    /* 2-11. 챕터 2 클리어 휴식 (NEW) */
     {
       id: 'ch2_rest1', type: 'rest',
       title: '임무 귀환',
