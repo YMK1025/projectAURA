@@ -242,8 +242,8 @@ export const useGameStore = create((set, get) => ({
     const node = getNode(get().currentNodeId);
     if (!node?.restAmount) return;
     const { hp, maxHp, mp, maxMp } = get();
-    const newHp = clampHp(hp + (node.restAmount.hp ?? 0));
-    const newMp = clampMp(mp + (node.restAmount.mp ?? 0));
+    const newHp = Math.min(maxHp, clampHp(hp + (node.restAmount.hp ?? 0)));
+    const newMp = Math.min(maxMp, clampMp(mp + (node.restAmount.mp ?? 0)));
     set({ hp: newHp, mp: newMp });
     if (node.next) get().goToNode(node.next);
   },
