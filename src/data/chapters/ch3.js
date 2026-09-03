@@ -1,15 +1,14 @@
-/* ─── Chapter 3: 첫 임무 ─── */
+/* ─── Chapter 3: 오라클 소탕 ─── */
 export const chapter3 = {
   id: 'ch3',
-  title: '첫 임무',
+  title: '오라클 소탕',
   nodes: [
 
     /* 3-1. 현장 수색 */
     {
       id: 'ch3_s0', type: 'story',
-      image: null,
       title: '사라지는 사람들',
-      text: `마지막 실종자의 집을 수색한다. 쓰러진 의자, 엎어진 커피잔. 투쟁의 흔적은 없다. 자발적으로 떠난 것처럼 보인다.\n\n당신의 능력이 반응한다. 이 공간에 무언가가 남아 있다.`,
+      text: `마지막 실종자의 집을 수색한다. 쓰러진 의자, 엎어진 커피잔. 투쟁의 흔적은 없다. 자발적으로 떠난 것처럼 보인다.\n\n당신의 능력이 반응한다. 이 공간에 무언가가 남아 있다.\n\n지유가 단말기를 확인한다. "오라클의 거점이 한강변 폐창고 근처로 파악됐어요. 가장 강력한 간부 — **가시(Thorn)**가 그곳에 있습니다."`,
       choices: [
         { text: '능력을 집중해 잔상을 읽어낸다',      next: 'ch3_combat1', faction: 0  },
         { text: '지유와 함께 단서를 분석한다',         next: 'ch3_combat1', faction: 10 },
@@ -20,7 +19,6 @@ export const chapter3 = {
     /* 3-2. 오라클 추종자 전투 */
     {
       id: 'ch3_combat1', type: 'combat',
-      image: null,
       title: '창고 앞의 수호자들',
       preText: '한강변 폐창고. 입구를 막은 두 명의 인물이 당신을 막아선다.\n\n그들의 눈빛엔 의지가 없다. 세뇌된 상태다.',
       enemies: ['oracle_follower', 'oracle_follower'],
@@ -32,7 +30,6 @@ export const chapter3 = {
     /* 3-3. 오라클 대치 */
     {
       id: 'ch3_s1', type: 'story',
-      image: null,
       title: '오라클',
       text: `창고 내부. 로브를 걸친 남자가 서 있다.\n\n**오라클(Oracle)**. 초능력자들을 세뇌하는 정신조작 능력자.\n\n"왔군요." 그의 목소리는 기이하게 울린다. "당신도 갇혀 있는 건 마찬가지예요. AURA라는 새장 안에."\n\n옆에서 카이가 갑자기 나타난다. "그는 적이 아니에요. 이야기를 들어요!"`,
       choices: [
@@ -45,7 +42,6 @@ export const chapter3 = {
     /* 3-4a. 오라클과 전투 */
     {
       id: 'ch3_combat2', type: 'combat',
-      image: null,
       title: '오라클 제압',
       preText: '"그래서 AURA의 명령을 따르는 거야." 오라클이 실망했다는 듯 고개를 젓는다.',
       enemies: ['oracle_follower', 'rogue_awakened'],
@@ -54,10 +50,9 @@ export const chapter3 = {
       onLose: 'gameover',
     },
 
-    /* 3-4b. 오라클과 대화 ★ 특별 이벤트 — statChanges 유지 */
+    /* 3-4b. 오라클과 대화 ★ 특별 이벤트 */
     {
       id: 'ch3_event1', type: 'event',
-      image: null,
       title: '새장 안의 진실',
       text: `오라클이 천천히 말한다.\n\n"AURA의 진짜 목적은 초능력자를 보호하는 게 아니에요. 분류하고, 통제하고 — 위험 등급 이상이 되면 '격리'합니다. 나는 그 격리실에서 탈출했어요."\n\n카이가 고개를 끄덕인다. "그래서 우리가 Nexus를 만든 거야. 우리끼리 지키자고."`,
       choices: [
@@ -69,20 +64,86 @@ export const chapter3 = {
     /* 3-5. 휴식 */
     {
       id: 'ch3_rest1', type: 'rest',
-      image: null,
       title: '귀환 후 정비',
       text: '임무를 마치고 기지로 돌아온다. 지유가 간단한 치료를 해준다.\n\n창밖 도시의 불빛. 누군가의 말이 계속 머릿속을 맴돈다.',
-      restAmount: { hp: 200, mp: 150 },
+      restAmount: { hp: 150, mp: 120 },
       next: 'ch3_shop1',
     },
 
     /* 3-6. 암시장 */
     {
       id: 'ch3_shop1', type: 'shop',
-      image: null,
       title: '비밀 암시장',
       shopId: 'black_market',
       text: '카이가 귓속말로 위치를 알려준 장소. AURA 공식 루트에는 없는 물건들이 있다.',
+      next: 'ch3_skill_learn',
+    },
+
+    /* 3-7. 챕터3 스킬 습득 (NEW) */
+    {
+      id: 'ch3_skill_learn', type: 'skill_learn',
+      title: '각성 심화',
+      text: '암시장에서 능력 강화 훈련 데이터를 입수했다. 한계를 넘어서는 새로운 기술이 열린다.',
+      skillByLineage: {
+        physical: 'body_slam',
+        psychic:  'mind_blast',
+        nature:   'nature_wrath',
+      },
+      next: 'ch3_s2',
+    },
+
+    /* 3-8. 오라클 간부 추적 (NEW) */
+    {
+      id: 'ch3_s2', type: 'story',
+      title: '가시를 찾아서',
+      text: `입수한 파일을 분석한 결과, 오라클의 실질적 전투 지휘자 **가시(Thorn)**의 거점을 파악했다.\n\n"가시는 공포를 무기로 다루는 정신계 능력자예요." 지유가 설명한다. "그녀의 눈을 보면 공포에 마비된다고 합니다."\n\n카이가 통신으로 끼어든다. "조심해. 가시는 오라클 내에서도 독단적이야. 심지어 오라클 수뇌부도 그녀를 두려워해."`,
+      choices: [
+        { text: '"정면 돌파합니다."',             next: 'ch3_combat3', faction: 5  },
+        { text: '"전술적으로 접근합시다."',        next: 'ch3_combat3', faction: 10 },
+        { text: '"카이, 당신도 함께 와줄 수 있어?"', next: 'ch3_combat3', faction: -5, relation: { kai: 10 } },
+      ],
+    },
+
+    /* 3-9. 오라클 전투 요원 (NEW) */
+    {
+      id: 'ch3_combat3', type: 'combat',
+      title: '오라클 거점 침투',
+      preText: '오라클 거점 외곽. 정예 전투 요원들이 방어선을 치고 있다.\n\n이들은 세뇌된 것이 아니다. 진심으로 오라클을 믿는 자들이다.',
+      enemies: ['oracle_agent', 'oracle_follower'],
+      goldReward: 150,
+      onWin:  'ch3_boss_pre',
+      onLose: 'gameover',
+    },
+
+    /* 3-10. 가시 대면 (NEW) */
+    {
+      id: 'ch3_boss_pre', type: 'story',
+      title: '오라클의 가시',
+      text: `거점 심부. 장미 향기가 진하게 퍼진다.\n\n연회색 드레스를 입은 여자가 당신을 바라보고 있다. **가시(Thorn)**.\n\n"오라클의 이상을 막으려는 건가." 그녀의 눈이 당신을 꿰뚫는다. "네가 얼마나 버티나 보지."\n\n공포가 물밀 듯 밀려온다. 하지만 당신은 버텨낸다.`,
+      choices: [
+        { text: '"오라클의 시대는 끝났어."',           next: 'ch3_boss', faction: 5  },
+        { text: '"당신도 이 방식이 옳다고 생각해?"',   next: 'ch3_boss', faction: 0  },
+        { text: '말없이 전투 자세를 취한다',            next: 'ch3_boss', faction: 5  },
+      ],
+    },
+
+    /* 3-11. 챕터 3 보스: 가시 (NEW) */
+    {
+      id: 'ch3_boss', type: 'combat',
+      title: '오라클 간부 — 가시',
+      preText: '"네가 얼마나 버티나 보지." 공포의 장막이 공간을 가득 채운다.',
+      enemies: ['oracle_commander'],
+      goldReward: 220,
+      onWin:  'ch3_rest2',
+      onLose: 'gameover',
+    },
+
+    /* 3-12. 챕터 3 클리어 휴식 (NEW) */
+    {
+      id: 'ch3_rest2', type: 'rest',
+      title: '폭풍 전야',
+      text: '가시를 제압했다. 그러나 그녀의 마지막 말이 머릿속을 맴돈다.\n\n"...이미 늦었어. 오라클 위에 더 큰 것이 있으니까."\n\n지유의 표정이 굳어진다. "더 큰 것... 오라클을 움직이는 배후가 있다는 건가?"\n\n그리고 당신의 단말기로 AURA 본부에서 긴급 소집 명령이 내려온다.',
+      restAmount: { hp: 250, mp: 200 },
       next: 'ch4_s0',
     },
   ],

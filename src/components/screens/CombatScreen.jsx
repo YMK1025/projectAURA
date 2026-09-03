@@ -1,34 +1,54 @@
 import { useState, useRef, useEffect } from 'react';
 import { useGameStore } from '../../store/useGameStore.js';
 import { getNode } from '../../data/chapters/index.js';
-import { SKILLS } from '../../data/skills.js';
+import { SKILLS, getSkillAtLevel } from '../../data/skills.js';
 import { getEffectDesc } from '../../engine/combat.js';
 import StatBar from '../ui/StatBar.jsx';
 
 function getSkillEffectHint(sk) {
+  const stat = sk.statScale === 'mental' ? '정신' : '파워';
   switch (sk.type) {
-    case 'damage':
-      return sk.target === 'all_enemies'
-        ? `전체 공격 · ${sk.statScale === 'mental' ? '정신' : '파워'} × ${sk.multiplier}`
-        : `단일 공격 · ${sk.statScale === 'mental' ? '정신' : '파워'} × ${sk.multiplier}`;
+    case 'damage': {
+      const base = sk.target === 'all_enemies' ? `전체 공격 · ${stat} × ${sk.multiplier}` : `단일 공격 · ${stat} × ${sk.multiplier}`;
+      const extras = [];
+      if (sk.hits && sk.hits > 1) extras.push(`${sk.hits}연격`);
+      if (sk.lifesteal) extras.push(`피해 ${Math.round(sk.lifesteal * 100)}% HP 흡수`);
+      if (sk.burnEffect) extras.push(`화상 ${sk.burnEffect.damage}/턴 × ${sk.burnEffect.duration}턴`);
+      return extras.length ? `${base} · ${extras.join(' · ')}` : base;
+    }
     case 'heal':
-      return `HP 회복 · 기본 ${sk.baseHeal} + 정신 × ${sk.multiplier}`;
-    case 'buff':
-      if (sk.effect?.type === 'defended')    return `방어 강화 · 피해 ${Math.round((1 - (sk.effect.mult ?? 0.5)) * 100)}% 감소 (${sk.effect.duration}턴)`;
-      if (sk.effect?.type === 'dodge_next')  return `다음 공격 확정 회피 (${sk.effect.duration}턴)`;
-      if (sk.effect?.type === 'overdrive')   return `공격력 × ${sk.effect.atkMult} · 스탯 +${sk.effect.statBonus} (${sk.effect.duration}턴)`;
-      return sk.desc;
-    case 'debuff':
-      if (sk.effect?.type === 'stun')        return `행동 불능 (${sk.effect.duration}턴)`;
-      if (sk.effect?.type === 'fear')        return `공격력 ${Math.round((1 - sk.effect.atkMult) * 100)}% 감소 (${sk.effect.duration}턴)`;
-      if (sk.effect?.type === 'exposed')     return `피해 +${Math.round(sk.effect.damageUp * 100)}% 증가 (${sk.effect.duration}턴)`;
-      return sk.desc;
-    case 'special':
-      if (sk.effect?.type === 'extra_turn')  return '추가 행동 획득';
-      if (sk.effect?.type === 'dominated')   return '적이 자신을 공격 (ATK × 0.8)';
-      return sk.desc;
+      return `HP 회복 · 기본 ${sk.baseHeal ?? 0} + 정신 × ${sk.multiplier}`;
+    case 'buff': {
+      const parts = [];
+      if (sk.effect?.type === 'defended') parts.push(`피해 ${Math.round((1 - (sk.effect.mult ?? 0.5)) * 100)}% 감소 (${sk.effect.duration}턴)`);
+      if (sk.effect?.type === 'dodge_next') parts.push(`다음 공격 확정 회피`);
+      if (sk.effect?.type === 'overdrive') parts.push(`공격력 × ${sk.effect.atkMult} (${sk.effect.duration}턴)`);
+      if (sk.healAmount) parts.push(`HP +${sk.healAmount} 회복`);
+      if (sk.comboEffect) parts.push('반격 강화');
+      if (sk.secondEffect?.type === 'exposed') parts.push(`적 피해 +${Math.round(sk.secondEffect.damageUp * 100)}% (${sk.secondEffect.duration}턴)`);
+      if (sk.extraTurn) parts.push('추가 행동 획득');
+      return parts.join(' · ') || (sk.desc ?? '');
+    }
+    case 'debuff': {
+      if (sk.effect?.type === 'stun') return `행동 불능 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'fear') return `공격력 ${Math.round((1 - sk.effect.atkMult) * 100)}% 감소 (${sk.effect.duration}턴)`;
+      if (sk.effect?.type === 'exposed') return `받는 피해 +${Math.round(sk.effect.damageUp * 100)}% (${sk.effect.duration}턴)`;
+      return sk.desc ?? '';
+    }
+    case 'special': {
+      if (sk.dominateMult !== undefined) {
+        const follow = sk.followEffect
+          ? sk.followEffect.type === 'stun'
+            ? ` + ${sk.followEffect.duration}턴 행동 불능`
+            : ` + ${sk.followEffect.duration}턴 공포`
+          : '';
+        return `적 자해 (ATK × ${sk.dominateMult})${follow}`;
+      }
+      if (sk.effect?.type === 'extra_turn') return '추가 행동 획득';
+      return sk.desc ?? '';
+    }
     default:
-      return sk.desc;
+      return sk.desc ?? '';
   }
 }
 
@@ -37,7 +57,7 @@ const TAB = { SKILL: 'skill', ITEM: 'item' };
 export default function CombatScreen() {
   const {
     currentNodeId, combat, hp, maxHp, mp, maxMp,
-    stats, ability, skills, inventory, equipment,
+    stats, skills, skillLevels, inventory, equipment,
     doCombatAttack, doCombatSkill, doCombatDefend, doCombatItem,
   } = useGameStore();
   const node = getNode(currentNodeId);
@@ -81,7 +101,7 @@ export default function CombatScreen() {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
               <span style={{ fontWeight: 600, fontSize: 13, color: e.currentHp <= 0 ? '#555' : '#ddd' }}>
-                {e.currentHp <= 0 ? '💀 ' : ''}{e.name}
+                {e.currentHp <= 0 ? '💀 ' : (e.isBoss || e.isFinalBoss ? '👑 ' : '')}{e.name}
               </span>
               <span style={{ fontSize: 12, color: '#888' }}>{e.currentHp}/{e.maxHp}</span>
             </div>
@@ -178,8 +198,10 @@ export default function CombatScreen() {
           {tab === TAB.SKILL && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               {skills.map(skillId => {
-                const sk = SKILLS[skillId];
-                if (!sk) return null;
+                const baseSk = SKILLS[skillId];
+                if (!baseSk) return null;
+                const skLv = skillLevels[skillId] ?? 1;
+                const sk = getSkillAtLevel(baseSk, skLv);
                 const canUse = mp >= sk.mpCost;
                 const effectHint = getSkillEffectHint(sk);
                 return (
@@ -192,11 +214,22 @@ export default function CombatScreen() {
                       opacity: canUse ? 1 : 0.5,
                       cursor: canUse ? 'pointer' : 'not-allowed',
                       textAlign: 'left',
+                      position: 'relative',
                     }}
                   >
-                    <div style={{ fontWeight: 600, fontSize: 12 }}>{sk.name}</div>
-                    <div style={{ fontSize: 11, color: '#00bcd4', marginTop: 2 }}>{effectHint}</div>
-                    <div style={{ fontSize: 10, color: '#666', marginTop: 1 }}>MP {sk.mpCost}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <div style={{ fontWeight: 600, fontSize: 12 }}>
+                        {baseSk.emoji} {baseSk.name}
+                      </div>
+                      <span style={{
+                        background: skLv === 3 ? '#ffd54f' : skLv === 2 ? '#00bcd4' : '#555',
+                        color: skLv === 3 ? '#000' : '#fff',
+                        borderRadius: 3, padding: '0 5px',
+                        fontSize: 9, fontWeight: 700, marginLeft: 4, flexShrink: 0,
+                      }}>Lv.{skLv}</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: '#00bcd4', marginTop: 3, lineHeight: 1.4 }}>{effectHint}</div>
+                    <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>MP {sk.mpCost}</div>
                   </button>
                 );
               })}

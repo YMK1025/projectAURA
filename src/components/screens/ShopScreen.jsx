@@ -1,10 +1,11 @@
 import { useGameStore } from '../../store/useGameStore.js';
 import { getNode } from '../../data/chapters/index.js';
 import { ITEMS, SHOP_INVENTORIES } from '../../data/items.js';
+import { SKILLS } from '../../data/skills.js';
 import ImagePanel from '../ui/ImagePanel.jsx';
 
 export default function ShopScreen() {
-  const { currentNodeId, gold, inventory, equipment, buyItem, equipItem, goToNode } = useGameStore();
+  const { currentNodeId, gold, inventory, skills, skillLevels, equipment, buyItem, equipItem, useSkillCrystal, goToNode } = useGameStore();
   const node = getNode(currentNodeId);
   if (!node) return null;
 
@@ -90,6 +91,45 @@ export default function ShopScreen() {
           );
         })}
       </div>
+
+      {/* 스킬 결정체 사용 섹션 */}
+      {inventory.filter(it => it.effect?.upgradeSkill && it.qty > 0).map(crystal => {
+        const upgradeable = skills.filter(id => (skillLevels[id] ?? 1) < 3);
+        const targetId = upgradeable[0];
+        const targetSkill = targetId ? SKILLS[targetId] : null;
+        const currentLv = targetId ? (skillLevels[targetId] ?? 1) : 0;
+        return (
+          <div key={crystal.id} style={{
+            background: '#0d0d1a', border: '2px solid #ffd54f55',
+            borderRadius: 10, padding: '14px',
+          }}>
+            <div style={{ fontWeight: 700, color: '#ffd54f', fontSize: 13, marginBottom: 6 }}>
+              💎 {crystal.name} ×{crystal.qty}
+            </div>
+            <div style={{ fontSize: 12, color: '#888', marginBottom: 10 }}>{crystal.desc}</div>
+            {targetSkill ? (
+              <>
+                <div style={{ fontSize: 12, color: '#aaa', marginBottom: 8 }}>
+                  업그레이드 대상: <span style={{ color: '#fff' }}>{targetSkill.emoji} {targetSkill.name}</span>
+                  <span style={{ color: '#ffd54f', marginLeft: 6 }}>Lv.{currentLv} → Lv.{currentLv + 1}</span>
+                </div>
+                <button
+                  onClick={() => useSkillCrystal(crystal.id)}
+                  style={{
+                    background: '#1a1a0a', border: '1px solid #ffd54f',
+                    borderRadius: 6, padding: '6px 16px',
+                    color: '#ffd54f', fontSize: 12, cursor: 'pointer',
+                  }}
+                >
+                  사용
+                </button>
+              </>
+            ) : (
+              <div style={{ fontSize: 12, color: '#555' }}>모든 스킬이 최대 레벨입니다.</div>
+            )}
+          </div>
+        );
+      })}
 
       <button
         onClick={() => goToNode(node.next)}

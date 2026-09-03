@@ -10,7 +10,8 @@ import RestScreen      from './components/screens/RestScreen.jsx';
 import EventScreen     from './components/screens/EventScreen.jsx';
 import EndingScreen    from './components/screens/EndingScreen.jsx';
 import GameOverScreen  from './components/screens/GameOverScreen.jsx';
-import LevelUpScreen   from './components/screens/LevelUpScreen.jsx';
+import LevelUpScreen      from './components/screens/LevelUpScreen.jsx';
+import SkillLearnScreen  from './components/screens/SkillLearnScreen.jsx';
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -35,8 +36,9 @@ const SCREEN_MAP = {
   shop:      ShopScreen,
   rest:      RestScreen,
   event:     EventScreen,
-  levelup:   LevelUpScreen,
-  ending:    EndingScreen,
+  levelup:     LevelUpScreen,
+  skill_learn: SkillLearnScreen,
+  ending:      EndingScreen,
   gameover:  GameOverScreen,
 };
 

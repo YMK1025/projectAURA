@@ -7,7 +7,6 @@ export const chapter1 = {
     /* 1-1. 지하철 각성 */
     {
       id: 'ch1_s0', type: 'story',
-      image: null,
       title: '세계의 균열',
       text: `2035년 서울. 도시는 오늘도 쉼 없이 돌아간다.\n\n당신은 출근길 지하철 안에 있다. 손잡이를 잡은 채 반쯤 졸고 있을 때였다.\n\n갑자기 열차가 멈춘다. 터널 한가운데서. 불이 깜박이고, 스피커에서 잡음이 터진다. 그 순간—\n\n머릿속에서 무언가가 '열린다'. 주변 모든 것이 선명하게, 아프도록 선명하게 보이기 시작한다.\n\n그것이 시작이었다.`,
       choices: [
@@ -20,7 +19,6 @@ export const chapter1 = {
     /* 1-2. 지유와 만남 */
     {
       id: 'ch1_s1', type: 'story',
-      image: null,
       title: '프로젝트 AURA',
       text: `퇴근 무렵, 낯선 여자가 엘리베이터 앞에서 기다리고 있다. 짧은 머리카락, 날카로운 눈매.\n\n"각성하셨군요. 저희가 기다리고 있었습니다."\n\n그녀의 이름은 **지유(Ji-Yu)**. 프로젝트 AURA의 선임 요원이다. 을지로의 오래된 건물 지하. 겉보기엔 낡은 창고지만 안으로 들어서자 최첨단 장비가 가득하다.\n\n"세상에는 두 종류의 사람이 있어요. 초능력이 없는 사람과, 아직 각성하지 못한 사람. 당신은 방금 그 경계를 넘었습니다."`,
       choices: [
@@ -33,7 +31,6 @@ export const chapter1 = {
     /* 1-3. 첫 전투 */
     {
       id: 'ch1_combat1', type: 'combat',
-      image: null,
       title: '침입자 처리',
       preText: '기지에 합류한 지 이틀째, 낯선 침입자가 기지에 나타났다.\n\n지유가 차갑게 말한다. "실전 경험을 쌓을 기회군요."',
       enemies: ['aura_guard'],
@@ -45,17 +42,15 @@ export const chapter1 = {
     /* 1-4. 휴식 */
     {
       id: 'ch1_rest1', type: 'rest',
-      image: null,
       title: 'AURA 회복 구역',
       text: '기지 내부의 의무실. 전투 후 지유가 회복 시설로 안내한다.\n\n"잘 했어요. 능력을 처음 실전에 쓴 치고는."',
-      restAmount: { hp: 150, mp: 120 },
+      restAmount: { hp: 120, mp: 100 },
       next: 'ch1_event1',
     },
 
     /* 1-5. 이벤트: 카이 첫 등장 */
     {
       id: 'ch1_event1', type: 'event',
-      image: null,
       title: '수상한 메시지',
       text: `늦은 밤, 당신의 단말기에 익명 메시지가 도착한다.\n\n*"AURA가 진실을 말하고 있다고 생각하세요? — K"*\n\n메시지 발신지는 추적 불가. 서명은 단 한 글자: K.`,
       choices: [
@@ -68,10 +63,64 @@ export const chapter1 = {
     /* 1-6. 상점 */
     {
       id: 'ch1_shop1', type: 'shop',
-      image: null,
       title: 'AURA 보급소',
       shopId: 'aura_supply',
       text: 'AURA 기지의 장비 보급소. 지유가 소개해 준 곳이다.',
+      next: 'ch1_s2',
+    },
+
+    /* 1-7. 폭주 각성자 출몰 신고 (NEW) */
+    {
+      id: 'ch1_s2', type: 'story',
+      title: '폭주 신호',
+      text: `보급소를 나서려는 순간, 기지 내 경보가 울린다.\n\n"마포구 일대에서 폭주 각성자 2명이 민간인을 위협하고 있습니다!"\n\n리온 교관이 당신을 바라본다. "훈련이 끝났죠. 실전으로 가죠."\n\n지유가 낮게 말한다. "저들은 도움이 필요한 거야. 제압은 하되, 다치지 않게."`,
+      choices: [
+        { text: '"바로 출동합니다."',             next: 'ch1_combat2', faction: 5  },
+        { text: '"잠깐, 상황 파악부터 하죠."',   next: 'ch1_combat2', faction: 0  },
+        { text: '"저들이 왜 폭주하는지가 먼저야."', next: 'ch1_combat2', faction: -10, relation: { kai: 5 } },
+      ],
+    },
+
+    /* 1-8. 폭주 각성자 전투 (NEW) */
+    {
+      id: 'ch1_combat2', type: 'combat',
+      title: '폭주 각성자 진압',
+      preText: '마포구 골목길. 두 명의 청년이 제어를 잃은 채 날뛰고 있다.\n\n주변 유리창이 산산이 부서지고 있다. 민간인들이 비명을 지르며 달아난다.',
+      enemies: ['rogue_awakened', 'rogue_awakened'],
+      goldReward: 90,
+      onWin:  'ch1_s3',
+      onLose: 'gameover',
+    },
+
+    /* 1-9. 나비 추적 (NEW) */
+    {
+      id: 'ch1_s3', type: 'story',
+      title: '나비',
+      text: `제압된 폭주 각성자들을 돌보던 중, 지유가 단말기를 들여다본다.\n\n"신호가 있어요. 이들의 능력 주파수와 동일한 패턴 — 약 300미터 떨어진 옥상에서."\n\n옥상에 도착하자, 한 소녀가 서 있다. 열일곱 살쯤 돼 보이는 앳된 얼굴.\n\n그녀의 등 뒤로 빛이 흩날린다. 나비 날개처럼.\n\n"...멈추고 싶어. 그런데 멈출 수가 없어."`,
+      choices: [
+        { text: '"괜찮아. 우리가 도와줄게."',         next: 'ch1_boss', faction: 5,  relation: { jiyu: 3 } },
+        { text: '"능력을 풀어. 그럼 다 끝나."',        next: 'ch1_boss', faction: 0  },
+        { text: '"...AURA가 아닌 다른 방법이 있어."', next: 'ch1_boss', faction: -5, relation: { kai: 5 } },
+      ],
+    },
+
+    /* 1-10. 챕터 1 보스: 나비 (NEW) */
+    {
+      id: 'ch1_boss', type: 'combat',
+      title: '폭주하는 나비',
+      preText: '"멈추고 싶은데... 몸이 말을 안 들어!"\n\n소녀의 능력이 폭발하듯 퍼진다. 선택의 여지가 없다. 제압해야 한다.',
+      enemies: ['rogue_elite'],
+      goldReward: 120,
+      onWin:  'ch1_rest2',
+      onLose: 'gameover',
+    },
+
+    /* 1-11. 챕터 1 클리어 휴식 (NEW) */
+    {
+      id: 'ch1_rest2', type: 'rest',
+      title: '나비의 귀환',
+      text: '나비를 제압하고 기지로 데려왔다. 지유의 치료를 받은 소녀의 눈빛이 돌아온다.\n\n"고마워요. 무서웠는데..."\n\n지유가 조용히 말한다. "이런 아이들이 더 있어요. 우리가 보호해야 해요."\n\n당신은 처음으로 AURA가 무엇을 하는 조직인지 실감한다.',
+      restAmount: { hp: 200, mp: 150 },
       next: 'ch2_s0',
     },
   ],

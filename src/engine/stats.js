@@ -54,11 +54,12 @@ export function calcMpCost(baseCost, equipment = {}) {
   return Math.max(1, Math.floor(baseCost * mult));
 }
 
-/** 회피 판정 (투시 패시브) */
-export function rollDodge(ability, effects = []) {
+/** 회피 판정 (직업 패시브) */
+export function rollDodge(job, effects = []) {
   const dodgeNext = effects.find(e => e.type === 'dodge_next');
   if (dodgeNext) return true;
-  if (ability === 'clairvoyance') return Math.random() < 0.15;
+  if (job === 'clairvoyant')   return Math.random() < 0.20;
+  if (job === 'beast_shifter') return Math.random() < 0.15;
   return false;
 }
 

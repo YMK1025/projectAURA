@@ -41,6 +41,14 @@ export const ITEMS = {
     effect: { cleanse: true },
   },
 
+  /* ── 스킬 결정체 ─── */
+  skill_crystal: {
+    id: 'skill_crystal', name: '스킬 결정체', emoji: '💎',
+    desc: '보유 스킬 중 레벨이 가장 낮은 스킬의 레벨을 +1 올린다. (최대 Lv3)',
+    type: 'consumable', price: 300,
+    effect: { upgradeSkill: true },
+  },
+
   /* ── 장비 아이템 ─── */
   aura_vest: {
     id: 'aura_vest', name: 'AURA 방탄복', emoji: '🦺',
@@ -72,7 +80,7 @@ export const ITEMS = {
 
 /* 상점별 판매 목록 */
 export const SHOP_INVENTORIES = {
-  aura_supply: ['recovery_s', 'stabilizer', 'energy_drink', 'aura_vest', 'reinforced_suit'],
-  black_market: ['recovery_l', 'stabilizer', 'awakening_ampoule', 'antidote', 'nexus_chip', 'focus_band'],
-  general:      ['recovery_s', 'recovery_l', 'stabilizer', 'energy_drink', 'antidote', 'reinforced_suit'],
+  aura_supply:  ['recovery_s', 'stabilizer', 'energy_drink', 'skill_crystal', 'aura_vest', 'reinforced_suit'],
+  black_market: ['recovery_l', 'stabilizer', 'awakening_ampoule', 'antidote', 'skill_crystal', 'nexus_chip', 'focus_band'],
+  general:      ['recovery_s', 'recovery_l', 'stabilizer', 'energy_drink', 'antidote', 'skill_crystal', 'reinforced_suit'],
 };
