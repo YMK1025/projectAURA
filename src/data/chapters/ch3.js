@@ -73,7 +73,7 @@ export const chapter3 = {
       id: 'ch3_rest1', type: 'rest',
       title: '귀환 후 정비',
       text: '임무를 마치고 기지로 돌아온다. 지유가 간단한 치료를 해준다.\n\n창밖 도시의 불빛. 누군가의 말이 계속 머릿속을 맴돈다.',
-      restAmount: { hp: 150, mp: 120 },
+      restAmount: { hp: 100, mp: 90 },
       next: 'ch3_random1',
     },
 
@@ -165,7 +165,7 @@ export const chapter3 = {
       id: 'ch3_rest2', type: 'rest',
       title: '폭풍 전야',
       text: '가시를 제압했다. 그러나 그녀의 마지막 말이 머릿속을 맴돈다.\n\n"...이미 늦었어. 오라클 위에 더 큰 것이 있으니까."\n\n지유의 표정이 굳어진다. "더 큰 것... 오라클을 움직이는 배후가 있다는 건가?"\n\n그리고 당신의 단말기로 AURA 본부에서 긴급 소집 명령이 내려온다.',
-      restAmount: { hp: 250, mp: 200 },
+      restAmount: { hp: 165, mp: 150 },
       next: 'ch4_s0',
     },
   ],

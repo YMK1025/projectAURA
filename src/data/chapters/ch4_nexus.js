@@ -54,7 +54,7 @@ export const chapter4_nexus = {
       id: 'ch4b_rest1', type: 'rest',
       title: '탈출',
       text: '지유를 뿌리치고 은신처를 확보했다. 카이가 상처를 치료해준다.\n\n"강 국장의 쿠데타 계획을 막으면 돼. 그러면 AURA의 부패한 구조도 무너질 거야."\n\n그가 잠시 멈춘다. "지유는... 언젠가 이해할 거야."',
-      restAmount: { hp: 300, mp: 200 },
+      restAmount: { hp: 195, mp: 150 },
       next: 'ch4b_random1',
     },
 

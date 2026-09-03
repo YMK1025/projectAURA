@@ -54,7 +54,7 @@ export const chapter4_aura = {
       id: 'ch4a_rest1', type: 'rest',
       title: '결의',
       text: '카이를 제압했다. 지유가 상처를 치료해준다.\n\n"잘 선택했어요. 우리가 안에서 바꿀 수 있어요." 그녀의 눈엔 믿음이 있다.\n\n하지만 카이의 마지막 말이 머릿속에 남는다. "Echo를 막아. 그게 진짜 위협이야."',
-      restAmount: { hp: 300, mp: 200 },
+      restAmount: { hp: 195, mp: 150 },
       next: 'ch4a_random1',
     },
 

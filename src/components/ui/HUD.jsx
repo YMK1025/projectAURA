@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useGameStore } from '../../store/useGameStore.js';
 import StatBar from './StatBar.jsx';
 
@@ -5,6 +6,7 @@ const EXP_TABLE = [0, 100, 250, 450, 700, 1050, 1500];
 
 export default function HUD() {
   const { hp, maxHp, mp, maxMp, stats, gold, faction, level, totalExp, equipment } = useGameStore();
+  const [showInfo, setShowInfo] = useState(false);
 
   const factionLabel = faction > 20 ? 'AURA 성향' : faction < -20 ? 'Nexus 성향' : '중립';
   const factionColor = faction > 20 ? '#4fc3f7' : faction < -20 ? '#ce93d8' : '#aaa';
@@ -40,11 +42,38 @@ export default function HUD() {
       </div>
 
       {/* 스탯 */}
-      <div style={{ marginTop: 8, borderTop: '1px solid #1e1e3f', paddingTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ marginTop: 8, borderTop: '1px solid #1e1e3f', paddingTop: 8, display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
         <span>⚡ <b style={{ color: '#ffd54f' }}>{stats.power}</b></span>
         <span>🛡 <b style={{ color: '#4fc3f7' }}>{stats.control}</b></span>
         <span>🧠 <b style={{ color: '#ce93d8' }}>{stats.mental}</b></span>
+        <button
+          onClick={() => setShowInfo(v => !v)}
+          style={{
+            marginLeft: 'auto', background: '#1a1a3e', border: '1px solid #2a2a5e',
+            borderRadius: 4, padding: '1px 7px', color: '#8888cc',
+            fontSize: 10, cursor: 'pointer',
+          }}
+        >
+          {showInfo ? '닫기' : '정보'}
+        </button>
       </div>
+
+      {/* 스탯 설명 패널 */}
+      {showInfo && (
+        <div style={{
+          marginTop: 6, background: '#0a0a1a', border: '1px solid #2a2a4e',
+          borderRadius: 6, padding: '8px 12px', fontSize: 11, color: '#aaa', lineHeight: 1.9,
+        }}>
+          <div><b style={{ color: '#ffd54f' }}>파워</b> — 일반 공격·물리 스킬 위력</div>
+          <div><b style={{ color: '#4fc3f7' }}>제어</b> — 효과 적중·방어 효율</div>
+          <div><b style={{ color: '#ce93d8' }}>정신</b> — 정신 스킬 위력·MP 회복</div>
+          <div><b style={{ color: '#ef5350' }}>HP</b> — 현재/최대 체력 ({hp}/{maxHp})</div>
+          <div><b style={{ color: '#7e57c2' }}>MP</b> — 스킬 사용 자원 ({mp}/{maxMp})</div>
+          <div style={{ marginTop: 4, borderTop: '1px solid #1e1e3f', paddingTop: 4, color: '#888' }}>
+            일반 공격 예상: ~{Math.round(stats.power * 2 * 0.9)}–{Math.round(stats.power * 2 * 1.4 + 15)}
+          </div>
+        </div>
+      )}
 
       {/* 진영 */}
       <div style={{ marginTop: 8, borderTop: '1px solid #1e1e3f', paddingTop: 8 }}>

@@ -63,7 +63,7 @@ export const chapter1 = {
       id: 'ch1_rest1', type: 'rest',
       title: 'AURA 회복 구역',
       text: '기지 내부의 의무실. 전투 후 지유가 회복 시설로 안내한다.\n\n"잘 했어요. 능력을 처음 실전에 쓴 치고는."',
-      restAmount: { hp: 120, mp: 100 },
+      restAmount: { hp: 80, mp: 75 },
       next: 'ch1_random1',
     },
 
@@ -151,7 +151,7 @@ export const chapter1 = {
       id: 'ch1_rest2', type: 'rest',
       title: '나비의 귀환',
       text: '나비를 제압하고 기지로 데려왔다. 지유의 치료를 받은 소녀의 눈빛이 돌아온다.\n\n"고마워요. 무서웠는데..."\n\n지유가 조용히 말한다. "이런 아이들이 더 있어요. 우리가 보호해야 해요."\n\n당신은 처음으로 AURA가 무엇을 하는 조직인지 실감한다.',
-      restAmount: { hp: 200, mp: 150 },
+      restAmount: { hp: 130, mp: 115 },
       next: 'ch2_s0',
     },
   ],

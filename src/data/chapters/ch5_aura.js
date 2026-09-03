@@ -90,7 +90,7 @@ export const chapter5_aura = {
       id: 'ch5_aura_rest1', type: 'rest',
       title: '마지막 준비',
       text: '지유가 응급 처치를 한다.\n\n"다음이 마지막이에요. Echo의 능력은 공간에 영향을 미칩니다. 의지를 잃지 마세요."\n\n그녀가 당신의 어깨에 손을 얹는다. "끝내고 돌아와요."',
-      restAmount: { hp: 400, mp: 300 },
+      restAmount: { hp: 260, mp: 225 },
       next: 'ch5_aura_boss',
     },
 

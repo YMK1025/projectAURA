@@ -7,7 +7,7 @@ export const ENEMIES = {
 
   aura_guard: {
     id: 'aura_guard', name: 'AURA 경비원', emoji: '🕴️',
-    maxHp: 160, atk: 28, def: 7,
+    maxHp: 192, atk: 36, def: 7,
     expReward: 40, goldReward: 50,
     weakTo: 'psychic', staggerMax: 70,
     itemDrop: { itemId: 'recovery_s', chance: 0.3 },
@@ -18,7 +18,7 @@ export const ENEMIES = {
   },
   nexus_agent: {
     id: 'nexus_agent', name: 'Nexus 요원', emoji: '🥷',
-    maxHp: 150, atk: 35, def: 5,
+    maxHp: 180, atk: 46, def: 5,
     expReward: 55, goldReward: 65,
     weakTo: 'nature', staggerMax: 65,
     itemDrop: { itemId: 'stabilizer', chance: 0.25 },
@@ -30,7 +30,7 @@ export const ENEMIES = {
   },
   rogue_awakened: {
     id: 'rogue_awakened', name: '폭주 각성자', emoji: '⚡',
-    maxHp: 200, atk: 40, def: 4,
+    maxHp: 240, atk: 52, def: 4,
     expReward: 60, goldReward: 80,
     weakTo: 'physical', resistTo: 'psychic', staggerMax: 75,
     itemDrop: { itemId: 'energy_drink', chance: 0.4 },
@@ -42,7 +42,7 @@ export const ENEMIES = {
   },
   oracle_follower: {
     id: 'oracle_follower', name: '오라클 추종자', emoji: '👤',
-    maxHp: 160, atk: 32, def: 6,
+    maxHp: 192, atk: 42, def: 6,
     expReward: 55, goldReward: 65,
     weakTo: 'physical', resistTo: 'psychic', staggerMax: 70,
     itemDrop: { itemId: 'antidote', chance: 0.2 },
@@ -54,7 +54,7 @@ export const ENEMIES = {
   },
   oracle_agent: {
     id: 'oracle_agent', name: '오라클 전투 요원', emoji: '🕵️',
-    maxHp: 210, atk: 46, def: 10,
+    maxHp: 252, atk: 60, def: 10,
     expReward: 70, goldReward: 90,
     weakTo: 'physical', resistTo: 'psychic', staggerMax: 80,
     itemDrop: { itemId: 'stabilizer', chance: 0.3 },
@@ -66,7 +66,7 @@ export const ENEMIES = {
   },
   nexus_elite: {
     id: 'nexus_elite', name: 'Nexus 정예 요원', emoji: '🔷',
-    maxHp: 230, atk: 55, def: 12,
+    maxHp: 276, atk: 72, def: 12,
     expReward: 75, goldReward: 100,
     weakTo: 'nature', staggerMax: 100,
     itemDrop: { itemId: 'energy_drink', chance: 0.3 },
@@ -78,7 +78,7 @@ export const ENEMIES = {
   },
   aura_elite: {
     id: 'aura_elite', name: 'AURA 특수 요원', emoji: '🔶',
-    maxHp: 240, atk: 52, def: 15,
+    maxHp: 288, atk: 68, def: 15,
     expReward: 75, goldReward: 100,
     weakTo: 'psychic', staggerMax: 110,
     itemDrop: { itemId: 'recovery_s', chance: 0.3 },
@@ -93,30 +93,30 @@ export const ENEMIES = {
 
   rogue_elite: {
     id: 'rogue_elite', name: '나비 (폭주 각성자)', emoji: '🦋',
-    maxHp: 240, atk: 48, def: 8,
+    maxHp: 300, atk: 67, def: 8,
     expReward: 100, goldReward: 120,
     isBoss: true, weakTo: 'physical', staggerMax: 200,
     phases: [
-      { threshold: 0.5, effect: { type: 'atkUp', amount: 15 } },
+      { threshold: 0.6, effect: { type: 'atkUp', amount: 15 } },
     ],
     pattern: [
-      { action: 'attack', weight: 4, hint: '흐느끼듯 몸을 떨며 손을 뻗는다...' },
+      { action: 'attack', weight: 5, hint: '흐느끼듯 몸을 떨며 손을 뻗는다...' },
       { action: 'skill', weight: 4, skillName: '혼돈의 날개', skillDmgMult: 1.7, hint: '등 뒤에서 무언가 폭발적으로 펼쳐지려 한다...' },
-      { action: 'berserk', weight: 2, hint: '고통에 찬 비명과 함께 모든 것이 흔들린다...' },
+      { action: 'berserk', weight: 3, hint: '고통에 찬 비명과 함께 모든 것이 흔들린다...' },
     ],
     description: '능력 폭주로 이성을 잃은 젊은 각성자.',
     introText: '"...멈추고 싶어. 그런데 멈출 수가 없어."',
   },
   nexus_operative: {
     id: 'nexus_operative', name: '야차 (오라클 연계 요원)', emoji: '🐉',
-    maxHp: 340, atk: 60, def: 13,
+    maxHp: 425, atk: 84, def: 13,
     expReward: 150, goldReward: 170,
     isBoss: true, weakTo: 'nature', staggerMax: 220,
     phases: [
-      { threshold: 0.5, effect: { type: 'regen', amount: 100 } },
+      { threshold: 0.6, effect: { type: 'regen', amount: 100 } },
     ],
     pattern: [
-      { action: 'attack', weight: 3, hint: '턱을 당기고 양 주먹을 꽉 쥔다...' },
+      { action: 'attack', weight: 4, hint: '턱을 당기고 양 주먹을 꽉 쥔다...' },
       { action: 'skill', weight: 4, skillName: '강철 주먹', skillDmgMult: 1.0, hits: 2, hint: '양손 관절에서 소리가 울리며 리듬감 있게 몸을 흔든다...' },
       { action: 'skill', weight: 3, skillName: '맹돌진', skillDmgMult: 2.2, hint: '이를 악물며 발밑 바닥이 미세하게 흔들린다...' },
     ],
@@ -125,15 +125,15 @@ export const ENEMIES = {
   },
   oracle_commander: {
     id: 'oracle_commander', name: '가시 (오라클 간부)', emoji: '🌹',
-    maxHp: 500, atk: 70, def: 16,
+    maxHp: 625, atk: 98, def: 16,
     expReward: 200, goldReward: 220,
     isBoss: true, weakTo: 'physical', staggerMax: 250,
     phases: [
-      { threshold: 0.6, effect: { type: 'regen', amount: 120 } },
-      { threshold: 0.3, effect: { type: 'atkUp', amount: 25 } },
+      { threshold: 0.7, effect: { type: 'regen', amount: 120 } },
+      { threshold: 0.4, effect: { type: 'atkUp', amount: 25 } },
     ],
     pattern: [
-      { action: 'attack', weight: 2, hint: '우아하게 손을 들어 올리며 시선을 당신에게 고정한다...' },
+      { action: 'attack', weight: 3, hint: '우아하게 손을 들어 올리며 시선을 당신에게 고정한다...' },
       { action: 'skill', weight: 4, skillName: '가시 파열', skillDmgMult: 2.0, debuff: 'fear', hint: '공기 중에 날카로운 것들이 맴도는 느낌이 든다...' },
       { action: 'skill', weight: 3, skillName: '공포의 장막', skillDmgMult: 0, debuff: 'stun', hint: '입꼬리를 올리며 낮고 부드러운 목소리로 무언가를 속삭인다...' },
       { action: 'defend', weight: 1, hint: '여유롭게 뒤로 물러서며 품위 있게 자세를 잡는다...' },
@@ -146,28 +146,28 @@ export const ENEMIES = {
 
   aura_captain: {
     id: 'aura_captain', name: 'AURA 기동대장', emoji: '🎖️',
-    maxHp: 500, atk: 58, def: 18,
+    maxHp: 625, atk: 81, def: 18,
     expReward: 160, goldReward: 200,
     itemDrop: { itemId: 'reinforced_suit', chance: 0.5 },
     isBoss: true, weakTo: 'psychic', staggerMax: 230,
     phases: [
-      { threshold: 0.5, effect: { type: 'atkUp', amount: 12 } },
+      { threshold: 0.6, effect: { type: 'atkUp', amount: 12 } },
     ],
     pattern: [
-      { action: 'attack', weight: 4, hint: '군인처럼 정확하게 발을 내딛으며 거리를 좁힌다...' },
+      { action: 'attack', weight: 5, hint: '군인처럼 정확하게 발을 내딛으며 거리를 좁힌다...' },
       { action: 'skill', weight: 4, skillName: '제압 충격', skillDmgMult: 1.6, debuff: 'stun', hint: '손바닥에 강렬한 에너지를 집중시키며 잠시 멈춘다...' },
-      { action: 'defend', weight: 2, hint: '방어막을 치듯 팔을 앞으로 내밀고 자세를 낮춘다...' },
+      { action: 'defend', weight: 1, hint: '방어막을 치듯 팔을 앞으로 내밀고 자세를 낮춘다...' },
     ],
     description: 'AURA 기동대의 현장 지휘관. 반역자를 처리하기 위해 출동했다.',
     introText: '"요원 신분으로 반역이라니. 직접 처리하겠다."',
   },
   nexus_lieutenant: {
     id: 'nexus_lieutenant', name: 'Nexus 부사령관', emoji: '🔫',
-    maxHp: 440, atk: 65, def: 13,
+    maxHp: 550, atk: 91, def: 13,
     expReward: 180, goldReward: 220,
     isBoss: true, weakTo: 'nature', staggerMax: 210,
     pattern: [
-      { action: 'attack', weight: 3, hint: '방아쇠 손가락이 미세하게 움직인다...' },
+      { action: 'attack', weight: 4, hint: '방아쇠 손가락이 미세하게 움직인다...' },
       { action: 'skill', weight: 4, skillName: '연속 사격', skillDmgMult: 0.7, hits: 2, hint: '조준선이 빠르게 흔들리며 여러 각도를 훑는다...' },
       { action: 'skill', weight: 3, skillName: '게릴라 전술', skillDmgMult: 2.2, hint: '순간적으로 시야에서 사라지듯 몸을 기울인다...' },
     ],
@@ -176,11 +176,11 @@ export const ENEMIES = {
   },
   jiyu_boss: {
     id: 'jiyu_boss', name: '지유 (Ji-Yu)', emoji: '🗡️',
-    maxHp: 600, atk: 72, def: 22,
+    maxHp: 750, atk: 101, def: 22,
     expReward: 280, goldReward: 0,
     isBoss: true, weakTo: 'nature', staggerMax: 260,
     pattern: [
-      { action: 'attack', weight: 3, hint: '익숙한 눈빛으로 당신의 허점을 찾는다...' },
+      { action: 'attack', weight: 4, hint: '익숙한 눈빛으로 당신의 허점을 찾는다...' },
       { action: 'skill', weight: 4, skillName: '정밀 타격', skillDmgMult: 1.9, hint: '숨을 느리게 내쉬며 한 점에 모든 집중을 쏟는다...' },
       { action: 'skill', weight: 2, skillName: '방어 충격', skillDmgMult: 1.5, hint: '방어를 뚫으려는 듯 각도를 계산하며 중심을 이동한다...' },
       { action: 'defend', weight: 1, hint: '눈을 감았다 뜨며 조용히 당신의 다음 행동을 기다린다...' },
@@ -191,11 +191,11 @@ export const ENEMIES = {
   },
   kai_boss: {
     id: 'kai_boss', name: '카이 (Kai)', emoji: '⚡',
-    maxHp: 580, atk: 72, def: 16,
+    maxHp: 725, atk: 101, def: 16,
     expReward: 280, goldReward: 0,
     isBoss: true, weakTo: 'physical', staggerMax: 240,
     pattern: [
-      { action: 'attack', weight: 3, hint: '손가락 사이에서 파직파직 소리가 새어 나온다...' },
+      { action: 'attack', weight: 4, hint: '손가락 사이에서 파직파직 소리가 새어 나온다...' },
       { action: 'skill', weight: 4, skillName: '전기 폭발', skillDmgMult: 2.0, hint: '머리카락이 곤두서고 공기가 따갑게 느껴진다...' },
       { action: 'skill', weight: 3, skillName: '충전 방전', skillDmgMult: 2.5, hint: '온몸이 번쩍이며 천천히 두 팔을 벌린다...' },
     ],
@@ -208,15 +208,15 @@ export const ENEMIES = {
 
   echo: {
     id: 'echo', name: 'Echo (Nexus 수장)', emoji: '🌑',
-    maxHp: 900, atk: 90, def: 22,
+    maxHp: 1125, atk: 126, def: 22,
     expReward: 350, goldReward: 0,
     isFinalBoss: true, weakTo: 'physical', staggerMax: 300,
     phases: [
-      { threshold: 0.6, effect: { type: 'regen', amount: 200 } },
-      { threshold: 0.3, effect: { type: 'atkUp', amount: 30 } },
+      { threshold: 0.7, effect: { type: 'regen', amount: 200 } },
+      { threshold: 0.4, effect: { type: 'atkUp', amount: 30 } },
     ],
     pattern: [
-      { action: 'attack', weight: 2, hint: '공간 자체가 눌리는 듯한 압박이 밀려온다...' },
+      { action: 'attack', weight: 3, hint: '공간 자체가 눌리는 듯한 압박이 밀려온다...' },
       { action: 'skill', weight: 4, skillName: '공명 파동', skillDmgMult: 2.2, hint: '주변의 빛이 일그러지며 허공에 파문이 퍼진다...' },
       { action: 'skill', weight: 3, skillName: '집단 세뇌', skillDmgMult: 0, debuff: 'fear', hint: '눈동자가 빛을 잃으며 목소리 없는 말이 머릿속에 울린다...' },
       { action: 'skill', weight: 1, skillName: '공명 폭발', skillDmgMult: 3.5, hint: '세상 전체가 숨을 죽이는 것 같은 침묵이 찾아온다...' },
@@ -226,15 +226,15 @@ export const ENEMIES = {
   },
   director_kang: {
     id: 'director_kang', name: '강 국장 (AURA 총책임자)', emoji: '👔',
-    maxHp: 800, atk: 78, def: 28,
+    maxHp: 1000, atk: 109, def: 28,
     expReward: 350, goldReward: 0,
     isFinalBoss: true, weakTo: 'psychic', staggerMax: 280,
     phases: [
-      { threshold: 0.5, effect: { type: 'regen', amount: 160 } },
-      { threshold: 0.25, effect: { type: 'atkUp', amount: 20 } },
+      { threshold: 0.6, effect: { type: 'regen', amount: 160 } },
+      { threshold: 0.4, effect: { type: 'atkUp', amount: 20 } },
     ],
     pattern: [
-      { action: 'attack', weight: 2, hint: '넥타이를 고쳐 매며 차갑게 당신을 내려다본다...' },
+      { action: 'attack', weight: 3, hint: '넥타이를 고쳐 매며 차갑게 당신을 내려다본다...' },
       { action: 'skill', weight: 4, skillName: '능력 억제 필드', skillDmgMult: 0, debuff: 'suppressed', hint: '무언가 보이지 않는 그물이 주변 공기를 조여드는 느낌이 든다...' },
       { action: 'skill', weight: 3, skillName: '전술 공격', skillDmgMult: 2.0, hint: '수십 년의 경험으로 다져진 눈이 빈틈을 정확히 포착한다...' },
       { action: 'skill', weight: 1, skillName: '최후 명령', skillDmgMult: 3.0, hint: '마지막 수단을 쓰기로 결심한 듯 표정이 굳어진다...' },

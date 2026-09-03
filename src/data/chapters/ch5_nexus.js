@@ -90,7 +90,7 @@ export const chapter5_nexus = {
       id: 'ch5_nexus_rest1', type: 'rest',
       title: '마지막 준비',
       text: '카이가 상처를 치료한다.\n\n"강 국장 경호는 두꺼워. 하지만 오라클과 기동대를 뚫었으니까 — 이제 그 혼자야."\n\n잠시 침묵 후 그가 말한다. "감사해. 진심으로. 같이 끝내자."',
-      restAmount: { hp: 400, mp: 300 },
+      restAmount: { hp: 260, mp: 225 },
       next: 'ch5_nexus_boss',
     },
 

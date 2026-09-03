@@ -144,7 +144,7 @@ export const chapter2 = {
       id: 'ch2_rest1', type: 'rest',
       title: '임무 귀환',
       text: '야차를 제압했다. 창고 안에서 세뇌된 각성자 8명을 발견해 구출했다.\n\n지유가 처치를 마치며 말한다. "야차는 오라클의 지시를 받은 거예요. 오라클의 배후에는 더 큰 조직이 있어요."\n\n"이 정도면 충분히 성장했어요. 다음 임무로 갑시다."',
-      restAmount: { hp: 180, mp: 150 },
+      restAmount: { hp: 115, mp: 115 },
       next: 'job_select',
     },
   ],
