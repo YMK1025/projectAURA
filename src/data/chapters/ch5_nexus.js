@@ -1,0 +1,91 @@
+/* ─── Chapter 5 (Nexus Path): 혁명 ─── */
+export const chapter5_nexus = {
+  id: 'ch5_nexus',
+  title: '혁명 — Nexus의 길',
+  nodes: [
+
+    /* 5-1. 작전 브리핑 */
+    {
+      id: 'ch5_nexus_s0', type: 'story',
+      image: null,
+      title: '강 국장을 향해',
+      text: `카이가 홀로그램 지도를 띄운다.\n\n"강 국장. AURA의 실질적 최고 권력자. 격리 명령서에 서명한 사람." 그의 목소리에 오래된 분노가 실린다.\n\n"그가 주관하는 '처분 위원회' 회의가 내일 열려. 참가자 전원이 한 곳에 모이는 유일한 기회야."\n\n"끝내자. 이 구조 자체를."\n\n당신은 고개를 끄덕인다.`,
+      choices: [
+        { text: '"작전 계획을 짜자."',          next: 'ch5_nexus_combat1', statChanges: { mental: 2  }, faction: -5  },
+        { text: '"사람을 해치는 건 최소로."',    next: 'ch5_nexus_combat1', statChanges: { control: 3 }, faction: -10 },
+        { text: '"전부 드러내버리자. 세상에."',  next: 'ch5_nexus_combat1', statChanges: { power: 2   }, faction: -5  },
+      ],
+    },
+
+    /* 5-2. AURA 경비 돌파 */
+    {
+      id: 'ch5_nexus_combat1', type: 'combat',
+      image: null,
+      title: 'AURA 본부 침투',
+      preText: '을지로 AURA 본부. 겹겹이 배치된 경비 요원들.\n\n카이가 속삭인다. "조용히. 전기는 내가 맡을게."',
+      enemies: ['aura_guard', 'aura_guard'],
+      goldReward: 150,
+      onLose: 'gameover',
+      onWin: 'ch5_nexus_event1',
+    },
+
+    /* 5-3. 이벤트: 격리실 발견 */
+    {
+      id: 'ch5_nexus_event1', type: 'event',
+      image: null,
+      title: '격리실',
+      text: `본부 지하. 카이가 말했던 격리실이 눈앞에 있다.\n\n방음 처리된 문들. 작은 창 너머로 눈빛을 잃은 사람들이 보인다.\n\n카이가 문 앞에서 멈춘다. 그는 이 중 한 방에 3년을 있었다.`,
+      choices: [
+        { text: '격리된 사람들을 지금 해방시킨다',  next: 'ch5_nexus_combat2', faction: -15, relation: { kai: 15 }, statChanges: { power: 2 }, resultText: '경보가 울린다. 하지만 그들의 눈빛이 돌아오는 것을 봤다.' },
+        { text: '작전 후 돌아오기로 한다',           next: 'ch5_nexus_combat2', faction: -5,  relation: { kai: 5 },  statChanges: { control: 3 }, resultText: '"맞아. 지금은 강 국장 먼저야." 카이가 이를 악물었다.' },
+      ],
+    },
+
+    /* 5-4. 중간 보스: AURA Captain */
+    {
+      id: 'ch5_nexus_combat2', type: 'combat',
+      image: null,
+      title: 'AURA 기동 대장',
+      preText: '회의실 층으로 올라가는 엘리베이터홀. 완전무장한 기동 대장이 길을 막는다.\n\n"거기까지야. 요원이었던 너는 더 잘 알겠지, 카이."',
+      enemies: ['aura_captain'],
+      goldReward: 250,
+      onWin:  'ch5_nexus_rest1',
+      onLose: 'gameover',
+    },
+
+    /* 5-5. 최종 전 휴식 */
+    {
+      id: 'ch5_nexus_rest1', type: 'rest',
+      image: null,
+      title: '마지막 준비',
+      text: '카이가 상처를 치료한다.\n\n"강 국장 경호는 두꺼워. 처음엔 경호원들이 따라붙어. 그 다음 그 혼자야."\n\n잠시 침묵 후 그가 말한다. "감사해. 진심으로."',
+      restAmount: { hp: 400, mp: 300 },
+      next: 'ch5_nexus_boss',
+    },
+
+    /* 5-6. 최종 보스 전 대화 */
+    {
+      id: 'ch5_nexus_boss', type: 'story',
+      image: null,
+      title: '강 국장',
+      text: `회의실. 강 국장이 혼자 앉아 당신을 기다리고 있다.\n\n"예상했습니다." 노인의 목소리는 흔들리지 않는다.\n\n"초능력자는 통제되어야 합니다. 역사가 증명하죠. 통제받지 않는 힘은 반드시 누군가를 해칩니다."\n\n그가 천천히 일어선다. "나는 틀리지 않았어요. 방법론에서 견해차가 있을 뿐."`,
+      choices: [
+        { text: '"그 방법론에 사람이 죽었어."',              next: 'ch5_nexus_final', statChanges: { power: 3  }, faction: -10 },
+        { text: '"당신의 논리라면 나도 처분 대상이다."',     next: 'ch5_nexus_final', statChanges: { mental: 4 }, faction: -5  },
+        { text: '"...이해는 해. 그래도 멈춰야 한다."',       next: 'ch5_nexus_final', statChanges: { control: 3 }, faction: -5 },
+      ],
+    },
+
+    /* 5-7. 최종 보스 전투 */
+    {
+      id: 'ch5_nexus_final', type: 'combat',
+      image: null,
+      title: '강 국장 최종전',
+      preText: '"그렇다면 직접 증명해보세요." 강 국장이 리모컨을 누른다. 벽 뒤에서 중무장한 경호원이 나온다.',
+      enemies: ['director_kang'],
+      goldReward: 0,
+      onWin:  'ending_nexus',
+      onLose: 'gameover',
+    },
+  ],
+};
