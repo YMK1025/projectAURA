@@ -20,8 +20,8 @@ export const chapter1 = {
       title: '프로젝트 AURA',
       text: `퇴근 무렵, 낯선 여자가 엘리베이터 앞에서 기다리고 있다. 짧은 머리카락, 날카로운 눈매.\n\n"각성하셨군요. 저희가 기다리고 있었습니다."\n\n그녀의 이름은 **지유(Ji-Yu)**. 프로젝트 AURA의 선임 요원이다. 을지로의 오래된 건물 지하. 겉보기엔 낡은 창고지만 안으로 들어서자 최첨단 장비가 가득하다.\n\n"세상에는 두 종류의 사람이 있어요. 초능력이 없는 사람과, 아직 각성하지 못한 사람. 당신은 방금 그 경계를 넘었습니다."`,
       choices: [
-        { text: '"합류하겠습니다."',              next: 'ch1_combat1', faction: 15, relation: { jiyu: 10 } },
-        { text: '"조직에 대해 더 알고 싶습니다."', next: 'ch1_combat1', faction: 5,  relation: { jiyu: 5  } },
+        { text: '"합류하겠습니다."',              next: 'ch1_combat1', faction: 15, relation: { jiyu: 10 }, setFlag: ['helped_aura_ch1', 'bonded_jiyu'] },
+        { text: '"조직에 대해 더 알고 싶습니다."', next: 'ch1_combat1', faction: 5,  relation: { jiyu: 5  }, setFlag: 'helped_aura_ch1' },
         { text: '"...일단 지켜보죠."',             next: 'ch1_combat1', faction: 0,  relation: { jiyu: 2  } },
       ],
     },
@@ -72,9 +72,9 @@ export const chapter1 = {
       title: '수상한 메시지',
       text: `늦은 밤, 당신의 단말기에 익명 메시지가 도착한다.\n\n*"AURA가 진실을 말하고 있다고 생각하세요? — K"*\n\n메시지 발신지는 추적 불가. 서명은 단 한 글자: K.`,
       choices: [
-        { text: '지유에게 보고한다',       next: 'ch1_shop1', faction: 10,  relation: { jiyu: 8  }, resultText: '지유가 눈살을 찌푸린다. "무시하세요. 공작입니다."' },
-        { text: '혼자 조사해보기로 한다',  next: 'ch1_shop1', faction: -10, relation: { kai: 5  }, resultText: '메시지를 저장해 두었다. 뭔가 숨겨진 게 있다.' },
-        { text: '답장을 보낸다: "누구냐"', next: 'ch1_shop1', faction: -15, relation: { kai: 15 }, resultText: '몇 분 후 답장이 왔다. "곧 알게 돼요. — K"' },
+        { text: '지유에게 보고한다',       next: 'ch1_shop1', faction: 10,  relation: { jiyu: 8  }, setFlag: 'helped_aura_ch1', resultText: '지유가 눈살을 찌푸린다. "무시하세요. 공작입니다."' },
+        { text: '혼자 조사해보기로 한다',  next: 'ch1_shop1', faction: -10, relation: { kai: 5  }, setFlag: 'helped_nexus_ch1', resultText: '메시지를 저장해 두었다. 뭔가 숨겨진 게 있다.' },
+        { text: '답장을 보낸다: "누구냐"', next: 'ch1_shop1', faction: -15, relation: { kai: 15 }, setFlag: ['helped_nexus_ch1', 'bonded_kai'], resultText: '몇 분 후 답장이 왔다. "곧 알게 돼요. — K"' },
       ],
     },
 
@@ -124,9 +124,9 @@ export const chapter1 = {
       title: '나비',
       text: `오라클을 쫓아낸 뒤, 신호가 300미터 옥상에서 잡힌다.\n\n옥상에 도착하자, 한 소녀가 서 있다. 열일곱 살쯤 돼 보이는 앳된 얼굴.\n\n그녀의 등 뒤로 빛이 흩날린다. 나비 날개처럼.\n\n"...멈추고 싶어. 그런데 멈출 수가 없어."`,
       choices: [
-        { text: '"괜찮아. 우리가 도와줄게."',         next: 'ch1_boss', faction: 5,  relation: { jiyu: 3 } },
+        { text: '"괜찮아. 우리가 도와줄게."',         next: 'ch1_boss', faction: 5,  relation: { jiyu: 3 }, setFlag: 'helped_aura_ch1' },
         { text: '"능력을 풀어. 그럼 다 끝나."',        next: 'ch1_boss', faction: 0  },
-        { text: '"...AURA가 아닌 다른 방법이 있어."', next: 'ch1_boss', faction: -5, relation: { kai: 5 } },
+        { text: '"...AURA가 아닌 다른 방법이 있어."', next: 'ch1_boss', faction: -5, relation: { kai: 5 }, setFlag: ['helped_nexus_ch1', 'bonded_kai'] },
       ],
     },
 

@@ -54,9 +54,9 @@ export const chapter2 = {
       title: '기지 아래의 목소리',
       text: `훈련 종료 후 혼자 복도를 걷다 낯선 남자와 마주친다.\n\n머리카락을 반쯤 가린 후드, 전기가 튀는 듯한 눈빛. 그가 조용히 말한다.\n\n"나는 **카이(Kai)**예요. 메시지 받았죠?"\n\n"AURA가 숨기는 게 있어요. 지금 당장은 믿지 않아도 돼요 — 하지만 눈을 뜨고 다니세요."`,
       choices: [
-        { text: '지유에게 즉시 신고한다',  next: 'ch2_shop1', faction: 15,  relation: { jiyu: 12, kai: -10 }, resultText: '"잘 했어요." 지유가 고맙다고 했다.' },
-        { text: '카이의 말을 새겨듣는다', next: 'ch2_shop1', faction: -10, relation: { kai: 15           }, resultText: '"또 연락할게요." 카이가 사라졌다.' },
-        { text: '"증거를 보여주면 믿겠다"', next: 'ch2_shop1', faction: -5,  relation: { kai: 10           }, resultText: '카이가 픽 웃었다. "곧 보게 될 거예요."' },
+        { text: '지유에게 즉시 신고한다',  next: 'ch2_shop1', faction: 15,  relation: { jiyu: 12, kai: -10 }, setFlag: 'helped_aura_ch1', resultText: '"잘 했어요." 지유가 고맙다고 했다.' },
+        { text: '카이의 말을 새겨듣는다', next: 'ch2_shop1', faction: -10, relation: { kai: 15           }, setFlag: 'bonded_kai', resultText: '"또 연락할게요." 카이가 사라졌다.' },
+        { text: '"증거를 보여주면 믿겠다"', next: 'ch2_shop1', faction: -5,  relation: { kai: 10           }, setFlag: 'bonded_kai', resultText: '카이가 픽 웃었다. "곧 보게 될 거예요."' },
       ],
     },
 
@@ -75,7 +75,7 @@ export const chapter2 = {
       choices: [
         { text: '"바로 출동합시다."',                        next: 'ch2_s2', faction: 5  },
         { text: '"더 알아야 합니다. 정보를."',               next: 'ch2_s2', faction: 0  },
-        { text: '"...그 실종자들, 자발적으로 간 게 아닐까요?"', next: 'ch2_s2', faction: -10, relation: { kai: 5 } },
+        { text: '"...그 실종자들, 자발적으로 간 게 아닐까요?"', next: 'ch2_s2', faction: -10, relation: { kai: 5 }, setFlag: 'helped_nexus_ch1' },
       ],
     },
 
@@ -139,7 +139,7 @@ export const chapter2 = {
       title: '임무 귀환',
       text: '야차를 제압했다. 창고 안에서 세뇌된 각성자 8명을 발견해 구출했다.\n\n지유가 처치를 마치며 말한다. "야차는 오라클의 지시를 받은 거예요. 오라클의 배후에는 더 큰 조직이 있어요."\n\n"이 정도면 충분히 성장했어요. 다음 임무로 갑시다."',
       restAmount: { hp: 180, mp: 150 },
-      next: 'ch3_s0',
+      next: 'job_select',
     },
   ],
 };

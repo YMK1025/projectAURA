@@ -6,7 +6,7 @@ export const MP_MAX   = 999;
 
 /** 플레이어 기본 물리 공격력 */
 export function calcPlayerAtk(stats, effects = []) {
-  let base = stats.power * 3 + randInt(10, 25);
+  let base = stats.power * 2 + randInt(5, 15);
   const overdrive = effects.find(e => e.type === 'overdrive');
   if (overdrive) base *= overdrive.atkMult ?? 1.5;
   return Math.floor(base);

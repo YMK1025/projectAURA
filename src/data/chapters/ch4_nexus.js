@@ -12,6 +12,8 @@ export const chapter4_nexus = {
         { text: '"함께 싸울게."',              next: 'ch4b_s1', faction: -5  },
         { text: '"강 국장이 문제군요."',       next: 'ch4b_s1', faction: -10 },
         { text: '"Echo는 어디 있어?"',         next: 'ch4b_s1', faction: -5  },
+        { text: '[인연] "카이, 처음부터 믿었어. 우리가 함께라면 바꿀 수 있어." — 굳은 신뢰를 보낸다', next: 'ch4b_s1', faction: -10, relation: { kai: 20 }, requireFlag: 'bonded_kai', resultText: '카이의 눈빛이 잠깐 흔들린다. "...고마워. 그 말, 평생 기억할게." 그가 조용히 웃는다.' },
+        { text: '[과거 회상] "AURA 밖의 세계를 처음부터 궁금해했어." — 오래된 의심을 꺼낸다', next: 'ch4b_s1', faction: -15, relation: { kai: 10 }, requireFlag: 'helped_nexus_ch1', statChanges: { mental: 2 }, resultText: '카이가 고개를 끄덕인다. "그게 진짜 각성이야. 의심이 없으면 자유도 없어."' },
       ],
     },
 

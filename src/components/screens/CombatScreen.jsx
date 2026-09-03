@@ -14,6 +14,8 @@ function getSkillEffectHint(sk) {
       if (sk.hits && sk.hits > 1) extras.push(`${sk.hits}연격`);
       if (sk.lifesteal) extras.push(`피해 ${Math.round(sk.lifesteal * 100)}% HP 흡수`);
       if (sk.burnEffect) extras.push(`화상 ${sk.burnEffect.damage}/턴 × ${sk.burnEffect.duration}턴`);
+      if (sk.poisonEffect) extras.push(`독 ${sk.poisonEffect.damage}(+${sk.poisonEffect.stackDamage ?? 0})/턴 × ${sk.poisonEffect.duration}턴`);
+      if (sk.bleedEffect) extras.push(`출혈 ${sk.bleedEffect.damage}/공격 × ${sk.bleedEffect.duration}턴`);
       return extras.length ? `${base} · ${extras.join(' · ')}` : base;
     }
     case 'heal':
@@ -222,11 +224,11 @@ export default function CombatScreen() {
                         {baseSk.emoji} {baseSk.name}
                       </div>
                       <span style={{
-                        background: skLv === 3 ? '#ffd54f' : skLv === 2 ? '#00bcd4' : '#555',
-                        color: skLv === 3 ? '#000' : '#fff',
+                        background: skLv === 4 ? '#ff6f00' : skLv === 3 ? '#ffd54f' : skLv === 2 ? '#00bcd4' : '#555',
+                        color: skLv >= 3 ? '#000' : '#fff',
                         borderRadius: 3, padding: '0 5px',
                         fontSize: 9, fontWeight: 700, marginLeft: 4, flexShrink: 0,
-                      }}>Lv.{skLv}</span>
+                      }}>{skLv === 4 ? '✦각성' : `Lv.${skLv}`}</span>
                     </div>
                     <div style={{ fontSize: 10, color: '#00bcd4', marginTop: 3, lineHeight: 1.4 }}>{effectHint}</div>
                     <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>MP {sk.mpCost}</div>

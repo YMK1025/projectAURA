@@ -63,10 +63,15 @@ export const useGameStore = create((set, get) => ({
   currentNodeId: 'ch1_s0',
   faction: 0,
   relations: { ...INITIAL_RELATIONS },
+  flags: {},
   skills: [],
   skillLevels: {},
   inventory: [],
   equipment: {},
+
+  /* ── 각성 */
+  awakeningSkillId: null,
+  awakeningDone: false,
 
   /* ── 전투 */
   combat: null,
@@ -80,36 +85,19 @@ export const useGameStore = create((set, get) => ({
 
   setPlayerName: (name) => set({ playerName: name }),
 
-  /* 1차: 계열 선택 (AwakeningScreen step1 → step2) */
+  /* 1차: 계열 선택 → 게임 시작 (직업은 Ch2 클리어 후 선택) */
   chooseLineage(lineageId) {
-    set({ lineage: lineageId });
-    // screen stays 'awakening' — AwakeningScreen reads lineage to show step 2
-  },
-
-  /* 2차: 직업 선택 → 게임 시작 */
-  chooseJob(jobId) {
-    const { lineage: lineageId } = get();
     const lin = LINEAGES[lineageId];
-    const job = JOBS[jobId];
-    if (!lin || !job) return;
-
-    const initStats = {
-      power:   lin.initStats.power   + (job.statBonus?.power   ?? 0),
-      control: lin.initStats.control + (job.statBonus?.control ?? 0),
-      mental:  lin.initStats.mental  + (job.statBonus?.mental  ?? 0),
-    };
-    const initHp  = lin.initHp + (job.maxHpBonus ?? 0);
-    const initMp  = lin.initMp;
+    if (!lin) return;
     const commonSkill = lin.commonSkillId;
-    const jobSkill    = job.jobSkillId;
-
     set({
-      job: jobId,
-      stats: initStats,
-      hp: initHp, maxHp: initHp,
-      mp: initMp, maxMp: initMp,
-      skills: [commonSkill, jobSkill],
-      skillLevels: { [commonSkill]: 1, [jobSkill]: 1 },
+      lineage: lineageId,
+      job: null,
+      stats: { ...lin.initStats },
+      hp: lin.initHp, maxHp: lin.initHp,
+      mp: lin.initMp, maxMp: lin.initMp,
+      skills: [commonSkill],
+      skillLevels: { [commonSkill]: 1 },
       screen: 'story',
       currentNodeId: 'ch1_s0',
       faction: 0,
@@ -124,12 +112,50 @@ export const useGameStore = create((set, get) => ({
     });
   },
 
+  /* 2차: 직업 선택 → 진행 중인 게임에 적용 후 Ch3 시작 */
+  chooseJob(jobId) {
+    const { lineage: lineageId, stats, maxHp, maxMp, hp, mp, skills, skillLevels } = get();
+    const lin = LINEAGES[lineageId];
+    const job = JOBS[jobId];
+    if (!lin || !job) return;
+
+    const newStats = {
+      power:   Math.min(STAT_MAX, stats.power   + (job.statBonus?.power   ?? 0)),
+      control: Math.min(STAT_MAX, stats.control + (job.statBonus?.control ?? 0)),
+      mental:  Math.min(STAT_MAX, stats.mental  + (job.statBonus?.mental  ?? 0)),
+    };
+    const hpBonus  = job.maxHpBonus ?? 0;
+    const newMaxHp = maxHp + hpBonus;
+    const newHp    = Math.min(hp + hpBonus, newMaxHp);
+    const jobSkill = job.jobSkillId;
+    const newSkills = skills.includes(jobSkill) ? skills : [...skills, jobSkill];
+    const newSkillLevels = { ...skillLevels };
+    if (!newSkillLevels[jobSkill]) newSkillLevels[jobSkill] = 1;
+
+    set({
+      job: jobId,
+      stats: newStats,
+      maxHp: newMaxHp,
+      hp: newHp,
+      skills: newSkills,
+      skillLevels: newSkillLevels,
+    });
+    get().goToNode('ch3_s0');
+  },
+
   /* 스토리 선택지 */
   makeChoice(choice) {
-    const { stats, relations, faction, hp, maxHp, mp, maxMp } = get();
+    const { stats, relations, faction, flags } = get();
     const newStats    = applyStatChanges(stats, choice.statChanges);
     const newRelation = applyRelationChanges(relations, choice.relation ?? {});
     const newFaction  = Math.max(-100, Math.min(100, faction + (choice.faction ?? 0)));
+
+    /* 플래그 처리 */
+    let newFlags = { ...flags };
+    if (choice.setFlag) {
+      const toSet = Array.isArray(choice.setFlag) ? choice.setFlag : [choice.setFlag];
+      for (const f of toSet) newFlags[f] = true;
+    }
 
     const nextNode = getNode(choice.next);
     if (!nextNode) return;
@@ -138,6 +164,7 @@ export const useGameStore = create((set, get) => ({
       stats: newStats,
       relations: newRelation,
       faction: newFaction,
+      flags: newFlags,
       currentNodeId: choice.next,
       screen: nextNode.type === 'combat' ? 'combat' : nextNode.type,
       combat: nextNode.type === 'combat' ? initCombat(nextNode.enemies) : null,
@@ -148,6 +175,7 @@ export const useGameStore = create((set, get) => ({
     if (nodeId === 'gameover')     { set({ screen: 'gameover' }); return; }
     if (nodeId === 'ending_aura')  { set({ screen: 'ending', endingType: 'aura' }); return; }
     if (nodeId === 'ending_nexus') { set({ screen: 'ending', endingType: 'nexus' }); return; }
+    if (nodeId === 'job_select')   { set({ screen: 'job_select' }); return; }
     const node = getNode(nodeId);
     if (!node) return;
     set({
@@ -268,9 +296,25 @@ export const useGameStore = create((set, get) => ({
   },
 
   confirmLevelUp() {
+    const { level, awakeningDone } = get();
     const node = getNode(get().currentNodeId);
     const nextId = node?.onWin;
     set({ levelUpGains: null });
+    if (level >= EXP_TABLE.length - 1 && !awakeningDone) {
+      set({ screen: 'skill_awakening', awakeningDone: true });
+      return;
+    }
+    if (nextId) get().goToNode(nextId);
+  },
+
+  chooseAwakening(skillId) {
+    const { skillLevels, currentNodeId } = get();
+    set({
+      awakeningSkillId: skillId,
+      skillLevels: { ...skillLevels, [skillId]: 4 },
+    });
+    const node = getNode(currentNodeId);
+    const nextId = node?.onWin;
     if (nextId) get().goToNode(nextId);
   },
 
@@ -347,7 +391,9 @@ export const useGameStore = create((set, get) => ({
       level: 1, totalExp: 0, expGainedLast: 0, levelUpGains: null,
       currentNodeId: 'ch1_s0',
       faction: 0, relations: { ...INITIAL_RELATIONS },
+      flags: {},
       skills: [], skillLevels: {}, inventory: [], equipment: {},
+      awakeningSkillId: null, awakeningDone: false,
       combat: null, endingType: null,
     });
   },

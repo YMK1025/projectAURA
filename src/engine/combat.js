@@ -15,6 +15,7 @@ export function initCombat(enemies) {
       ...ENEMIES[id],
       currentHp: ENEMIES[id].maxHp,
       effects: [],
+      phases: (ENEMIES[id].phases ?? []).map(p => ({ ...p, triggered: false })),
     })),
     playerEffects: [],
     log: [],
@@ -51,6 +52,7 @@ export function playerAttack(combat, playerStats, equipment, job) {
     }
   }
 
+  newEnemies = checkBossPhases(newEnemies, log);
   const phase = newEnemies.every(e => e.currentHp <= 0) ? 'win' : 'enemy';
   return {
     ...combat,
@@ -115,6 +117,24 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
         });
         log.push(`🔥 화상 전파!`);
       }
+      if (skill.poisonEffect) {
+        newEnemies.forEach(e => {
+          if (e.currentHp > 0) {
+            newEnemies = applyEffectToEnemy(newEnemies, e.id,
+              { type: 'poison', damage: skill.poisonEffect.damage, stackDamage: skill.poisonEffect.stackDamage ?? 0, duration: skill.poisonEffect.duration }, job);
+          }
+        });
+        log.push(`🟢 독 전파!`);
+      }
+      if (skill.bleedEffect) {
+        newEnemies.forEach(e => {
+          if (e.currentHp > 0) {
+            newEnemies = applyEffectToEnemy(newEnemies, e.id,
+              { type: 'bleed', damage: skill.bleedEffect.damage, duration: skill.bleedEffect.duration }, job);
+          }
+        });
+        log.push(`🔴 출혈 전파!`);
+      }
     } else if (target) {
       log.push(`✨ ${skill.name}! ${target.name}에게 **${dmg}** 피해.`);
       newEnemies = dealDamageToEnemy(newEnemies, target.id, dmg, log);
@@ -129,6 +149,22 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
           newEnemies = applyEffectToEnemy(newEnemies, target.id,
             { type: 'burn', damage: skill.burnEffect.damage, duration: skill.burnEffect.duration }, job);
           log.push(`🔥 ${target.name}에게 화상!`);
+        }
+      }
+      if (skill.poisonEffect) {
+        const stillAlive = newEnemies.find(e => e.id === target.id && e.currentHp > 0);
+        if (stillAlive) {
+          newEnemies = applyEffectToEnemy(newEnemies, target.id,
+            { type: 'poison', damage: skill.poisonEffect.damage, stackDamage: skill.poisonEffect.stackDamage ?? 0, duration: skill.poisonEffect.duration }, job);
+          log.push(`🟢 ${target.name}에게 독!`);
+        }
+      }
+      if (skill.bleedEffect) {
+        const stillAlive = newEnemies.find(e => e.id === target.id && e.currentHp > 0);
+        if (stillAlive) {
+          newEnemies = applyEffectToEnemy(newEnemies, target.id,
+            { type: 'bleed', damage: skill.bleedEffect.damage, duration: skill.bleedEffect.duration }, job);
+          log.push(`🔴 ${target.name}에게 출혈!`);
         }
       }
     }
@@ -177,6 +213,7 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
     }
   }
 
+  newEnemies = checkBossPhases(newEnemies, log);
   const win = newEnemies.every(e => e.currentHp <= 0);
   return {
     newCombat: {
@@ -251,7 +288,26 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
     if (burn) {
       const burnDmg = burn.damage;
       newEnemies[i] = { ...newEnemies[i], currentHp: Math.max(0, newEnemies[i].currentHp - burnDmg) };
-      log.push(`🔥 ${e.name} 화상 ${burnDmg} 피해!`);
+      log.push(`🔥 ${e.name} 화상 **${burnDmg}** 피해!`);
+      if (newEnemies[i].currentHp <= 0) {
+        log.push(`💀 ${e.name} 쓰러짐!`);
+        newEnemies[i] = { ...newEnemies[i], effects: tickEffects(newEnemies[i].effects ?? []) };
+        continue;
+      }
+    }
+
+    // 독 도트 피해 (매 턴 damage 누적 증가)
+    const poison = newEnemies[i].effects?.find(ef => ef.type === 'poison');
+    if (poison) {
+      const poisonDmg = poison.damage;
+      newEnemies[i] = { ...newEnemies[i], currentHp: Math.max(0, newEnemies[i].currentHp - poisonDmg) };
+      log.push(`🟢 ${e.name} 독 **${poisonDmg}** 피해!`);
+      newEnemies[i] = {
+        ...newEnemies[i],
+        effects: newEnemies[i].effects.map(ef =>
+          ef.id === poison.id ? { ...ef, damage: ef.damage + (ef.stackDamage ?? 0) } : ef
+        ),
+      };
       if (newEnemies[i].currentHp <= 0) {
         log.push(`💀 ${e.name} 쓰러짐!`);
         newEnemies[i] = { ...newEnemies[i], effects: tickEffects(newEnemies[i].effects ?? []) };
@@ -268,6 +324,10 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
     }
 
     const action = pickAction(e.pattern);
+
+    if (action.hint) {
+      log.push(`💭 ${e.name}: "${action.hint}"`);
+    }
 
     if (action.action === 'attack') {
       const atkVal = calcEnemyAtk(newEnemies[i], newEnemies[i].effects);
@@ -319,6 +379,17 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
       if (job === 'guardian') finalDmg = Math.max(1, Math.floor(finalDmg * 0.9));
       hpDelta -= finalDmg;
       log.push(`💢 ${e.name} **광폭화**! **${finalDmg}** 피해!`);
+    }
+
+    // 출혈: 공격 행동 시 자해
+    if (action.action === 'attack' || action.action === 'berserk' ||
+        (action.action === 'skill' && (action.skillDmgMult ?? 0) > 0)) {
+      const bleed = newEnemies[i].effects?.find(ef => ef.type === 'bleed');
+      if (bleed && newEnemies[i].currentHp > 0) {
+        newEnemies[i] = { ...newEnemies[i], currentHp: Math.max(0, newEnemies[i].currentHp - bleed.damage) };
+        log.push(`🔴 ${e.name} 출혈! 자해 **${bleed.damage}** 피해.`);
+        if (newEnemies[i].currentHp <= 0) log.push(`💀 ${e.name} 쓰러짐!`);
+      }
     }
 
     newEnemies[i] = { ...newEnemies[i], effects: tickEffects(newEnemies[i].effects ?? []) };
@@ -404,6 +475,31 @@ export function getEffectDesc(effect) {
     overdrive:  '오버드라이브',
     dominated:  '지배',
     burn:       '화상',
+    poison:     '독',
+    bleed:      '출혈',
   };
   return map[effect?.type] ?? effect?.type ?? '?';
+}
+
+function checkBossPhases(enemies, log) {
+  return enemies.map(e => {
+    if (!e.phases?.length || e.currentHp <= 0) return e;
+    let updated = { ...e };
+    const phases = updated.phases.map(phase => {
+      if (phase.triggered) return phase;
+      const hpRatio = updated.currentHp / updated.maxHp;
+      if (hpRatio > phase.threshold) return phase;
+      const { type, amount } = phase.effect;
+      if (type === 'regen') {
+        const actual = Math.min(amount, updated.maxHp - updated.currentHp);
+        updated = { ...updated, currentHp: updated.currentHp + actual };
+        log.push(`💢 **${updated.name} 페이즈 전환!** HP **+${actual}** 회복!`);
+      } else if (type === 'atkUp') {
+        updated = { ...updated, atk: updated.atk + amount };
+        log.push(`💢 **${updated.name} 광폭화!** ATK **+${amount}**!`);
+      }
+      return { ...phase, triggered: true };
+    });
+    return { ...updated, phases };
+  });
 }

@@ -138,6 +138,9 @@ export const chapter3 = {
         { text: '"오라클의 시대는 끝났어."',           next: 'ch3_boss', faction: 5  },
         { text: '"당신도 이 방식이 옳다고 생각해?"',   next: 'ch3_boss', faction: 0  },
         { text: '말없이 전투 자세를 취한다',            next: 'ch3_boss', faction: 5  },
+        { text: '몸으로 직접 막아선다 — 공포는 근육으로 뚫는다', next: 'ch3_boss', faction: 5, statChanges: { power: 2 }, requireLineage: 'physical', resultText: '전신에 힘이 솟구친다. 두려움이 연료로 바뀐다.' },
+        { text: '정신력으로 꿰뚫어본다 — 공포의 파동을 역이용한다', next: 'ch3_boss', faction: 0, statChanges: { mental: 2 }, requireLineage: 'psychic', resultText: '가시의 공포 파동을 역으로 읽어낸다. 마음이 맑아진다.' },
+        { text: '자연의 기운을 이용한다 — 대지의 흐름으로 중화한다', next: 'ch3_boss', faction: 0, statChanges: { control: 2 }, requireLineage: 'nature', resultText: '공간의 에너지가 호흡처럼 흐른다. 가시의 공포가 녹아든다.' },
       ],
     },
 

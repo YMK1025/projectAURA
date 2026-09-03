@@ -11,19 +11,45 @@ function parseMd(text) {
 }
 
 export default function EventScreen() {
-  const { currentNodeId, makeChoice } = useGameStore();
+  const { currentNodeId, makeChoice, flags, lineage, job } = useGameStore();
   const node = getNode(currentNodeId);
   const [flash, setFlash] = useState(null);
+  const [pendingChoice, setPendingChoice] = useState(null);
 
   if (!node) return null;
+
+  const isVisible = (choice) => {
+    if (choice.requireFlag) {
+      if (!flags[choice.requireFlag]) return false;
+    }
+    if (choice.denyFlag) {
+      if (flags[choice.denyFlag]) return false;
+    }
+    if (choice.requireLineage) {
+      const req = Array.isArray(choice.requireLineage) ? choice.requireLineage : [choice.requireLineage];
+      if (!req.includes(lineage)) return false;
+    }
+    if (choice.requireJob) {
+      const req = Array.isArray(choice.requireJob) ? choice.requireJob : [choice.requireJob];
+      if (!req.includes(job)) return false;
+    }
+    return true;
+  };
 
   function handleChoice(choice) {
     if (choice.resultText) {
       setFlash(choice.resultText);
-      setTimeout(() => { setFlash(null); makeChoice(choice); }, 1400);
+      setPendingChoice(choice);
     } else {
       makeChoice(choice);
     }
+  }
+
+  function handleContinue() {
+    const choice = pendingChoice;
+    setFlash(null);
+    setPendingChoice(null);
+    makeChoice(choice);
   }
 
   return (
@@ -48,13 +74,25 @@ export default function EventScreen() {
           background: '#1a1a2e', border: '1px solid #ce93d8', borderRadius: 8,
           padding: '10px 14px', color: '#ce93d8', fontSize: 13, animation: 'fadeIn 0.3s',
         }}>
-          {flash}
+          <div>{flash}</div>
+          <button
+            onClick={handleContinue}
+            style={{
+              marginTop: 10, background: '#0d0d2e', border: '1px solid #ce93d8',
+              borderRadius: 6, padding: '8px 18px', color: '#ce93d8',
+              cursor: 'pointer', fontSize: 13, display: 'block', marginLeft: 'auto',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = '#150d2a'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = '#0d0d2e'; }}
+          >
+            계속 →
+          </button>
         </div>
       )}
 
       {!flash && node.choices && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          {node.choices.map((choice, i) => (
+          {node.choices.filter(isVisible).map((choice, i) => (
             <button
               key={i}
               onClick={() => handleChoice(choice)}

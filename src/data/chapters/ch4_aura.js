@@ -12,6 +12,8 @@ export const chapter4_aura = {
         { text: '"Echo가 뭔데요?"',                 next: 'ch4a_s1', faction: 5  },
         { text: '"카이가 걱정되긴 하는데..."',        next: 'ch4a_s1', faction: -5, relation: { kai: 5 } },
         { text: '"먼저 AURA 내부를 정리합시다."',   next: 'ch4a_s1', faction: 10 },
+        { text: '[과거 회상] "처음부터 AURA를 믿었으니까요." — 지유에게 신뢰를 전한다', next: 'ch4a_s1', faction: 15, relation: { jiyu: 12 }, requireFlag: 'helped_aura_ch1', resultText: '지유가 잠깐 멈추더니 조용히 웃는다. "그때부터 알아봤어요. 당신이 같은 편이라는 걸."' },
+        { text: '[인연] "지유, 당신이 있어서 여기까지 올 수 있었어요." — 진심을 전한다', next: 'ch4a_s1', faction: 10, relation: { jiyu: 15 }, requireFlag: 'bonded_jiyu', resultText: '지유의 눈빛이 흔들린다. "...저도 같은 생각이에요." 그녀가 조용히 말한다.' },
       ],
     },
 
