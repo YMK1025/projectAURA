@@ -1,8 +1,7 @@
 /* 스탯 계산 헬퍼 */
 
-export const STAT_MAX = 99;
-export const HP_MAX   = 999;
-export const MP_MAX   = 999;
+export const STAT_MAX = 50;
+export const HP_MAX   = 500;
 
 /** 플레이어 기본 물리 공격력 */
 export function calcPlayerAtk(stats, effects = []) {
@@ -80,4 +79,3 @@ export function clampStat(v, min = 0, max = STAT_MAX) {
   return Math.max(min, Math.min(max, v));
 }
 export function clampHp(v) { return Math.max(0, Math.min(HP_MAX, v)); }
-export function clampMp(v) { return Math.max(0, Math.min(MP_MAX, v)); }

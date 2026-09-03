@@ -44,7 +44,7 @@ export const chapter3 = {
       preText: '"그래서 AURA의 명령을 따르는 거야." 오라클이 실망했다는 듯 고개를 젓는다.',
       enemies: ['oracle_follower', 'rogue_awakened'],
       goldReward: 130,
-      onWin:  'ch3_rest1',
+      onWin:  'ch3_random1',
       onLose: 'gameover',
     },
 
@@ -65,16 +65,8 @@ export const chapter3 = {
       preText: '대화 도중 창고 외벽을 뚫고 오라클 추종자들이 쏟아진다.\n\n"가시의 명령이야. 회유는 끝났어." 카이가 전기를 끌어모은다.',
       enemies: ['oracle_follower', 'nexus_agent'],
       goldReward: 120,
-      onWin:  'ch3_rest1',
+      onWin:  'ch3_random1',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch3_rest1', type: 'rest',
-      title: '귀환 후 정비',
-      text: '임무를 마치고 기지로 돌아온다. 지유가 간단한 치료를 해준다.\n\n창밖 도시의 불빛. 누군가의 말이 계속 머릿속을 맴돈다.',
-      restAmount: { hp: 100, mp: 90 },
-      next: 'ch3_random1',
     },
 
     {
@@ -157,16 +149,8 @@ export const chapter3 = {
       preText: '"네가 얼마나 버티나 보지." 공포의 장막이 공간을 가득 채운다.',
       enemies: ['oracle_commander'],
       goldReward: 220,
-      onWin:  'ch3_rest2',
+      onWin:  'ch4_s0',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch3_rest2', type: 'rest',
-      title: '폭풍 전야',
-      text: '가시를 제압했다. 그러나 그녀의 마지막 말이 머릿속을 맴돈다.\n\n"...이미 늦었어. 오라클 위에 더 큰 것이 있으니까."\n\n지유의 표정이 굳어진다. "더 큰 것... 오라클을 움직이는 배후가 있다는 건가?"\n\n그리고 당신의 단말기로 AURA 본부에서 긴급 소집 명령이 내려온다.',
-      restAmount: { hp: 165, mp: 150 },
-      next: 'ch4_s0',
     },
   ],
 };

@@ -7,7 +7,7 @@ export const LINEAGES = {
     commonSkillId: 'smash',
     jobs: ['guardian', 'beast_shifter'],
     initStats: { power: 18, control: 14, mental: 5 },
-    initHp: 330, initMp: 130,
+    initHp: 100,
   },
   psychic: {
     id: 'psychic', name: '정신계', emoji: '🧠', color: '#ce93d8',
@@ -16,7 +16,7 @@ export const LINEAGES = {
     commonSkillId: 'tele_strike',
     jobs: ['clairvoyant', 'dominator'],
     initStats: { power: 8, control: 18, mental: 22 },
-    initHp: 220, initMp: 270,
+    initHp: 100,
   },
   nature: {
     id: 'nature', name: '자연계', emoji: '🌊', color: '#4fc3f7',
@@ -25,6 +25,6 @@ export const LINEAGES = {
     commonSkillId: 'element_burst',
     jobs: ['pyromancer', 'storm_caller'],
     initStats: { power: 15, control: 10, mental: 18 },
-    initHp: 270, initMp: 220,
+    initHp: 100,
   },
 };

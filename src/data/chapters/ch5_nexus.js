@@ -82,16 +82,8 @@ export const chapter5_nexus = {
       preText: '회의실 층으로 올라가는 엘리베이터홀. 완전무장한 기동 대장이 오라클 요원과 함께 길을 막는다.\n\n"거기까지야. 요원이었던 너는 더 잘 알겠지, 카이."',
       enemies: ['aura_captain', 'oracle_agent'],
       goldReward: 260,
-      onWin:  'ch5_nexus_rest1',
+      onWin:  'ch5_nexus_boss',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch5_nexus_rest1', type: 'rest',
-      title: '마지막 준비',
-      text: '카이가 상처를 치료한다.\n\n"강 국장 경호는 두꺼워. 하지만 오라클과 기동대를 뚫었으니까 — 이제 그 혼자야."\n\n잠시 침묵 후 그가 말한다. "감사해. 진심으로. 같이 끝내자."',
-      restAmount: { hp: 260, mp: 225 },
-      next: 'ch5_nexus_boss',
     },
 
     {

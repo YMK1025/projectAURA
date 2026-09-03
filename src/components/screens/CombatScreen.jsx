@@ -71,16 +71,13 @@ function getSkillEffectHint(sk) {
   }
 }
 
-const TAB = { SKILL: 'skill', ITEM: 'item' };
-
 export default function CombatScreen() {
   const {
-    currentNodeId, combat, hp, maxHp, mp, maxMp,
-    stats, skills, skillLevels, inventory, equipment,
+    currentNodeId, combat, hp, maxHp,
+    stats, skills, skillLevels, skillCharges, inventory,
     doCombatAttack, doCombatSkill, doCombatDefend, doCombatItem,
   } = useGameStore();
   const node = getNode(currentNodeId);
-  const [tab, setTab] = useState(TAB.SKILL);
   const [showGuide, setShowGuide] = useState(false);
   const logRef = useRef(null);
 
@@ -180,7 +177,6 @@ export default function CombatScreen() {
         borderRadius: 8, padding: '10px 14px',
       }}>
         <StatBar label="HP" value={hp} max={maxHp} color="#ef5350" />
-        <StatBar label="MP" value={mp} max={maxMp} color="#7e57c2" />
         {combat.playerEffects?.length > 0 && (
           <div style={{ display: 'flex', gap: 6, marginTop: 6, flexWrap: 'wrap' }}>
             {combat.playerEffects.map((ef, i) => (
@@ -218,26 +214,8 @@ export default function CombatScreen() {
       {/* 행동 패널 */}
       {isPlayerTurn && aliveEnemies.length > 0 && (
         <div>
-          {/* 탭 */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
-            {[['기본', 'basic'], ['스킬', TAB.SKILL], ['아이템', TAB.ITEM]].map(([label, key]) => (
-              <button
-                key={key}
-                onClick={() => key !== 'basic' && setTab(key)}
-                style={{
-                  background: tab === key || key === 'basic' ? '#1a1a4a' : '#0d0d2e',
-                  border: `1px solid ${tab === key || key === 'basic' ? '#4fc3f7' : '#2a2a4e'}`,
-                  borderRadius: 6, padding: '6px 14px', color: '#ddd',
-                  fontSize: 12, cursor: 'pointer',
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-
           {/* 기본 행동 */}
-          <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
             <button onClick={doCombatAttack} style={btnStyle('#1a0d2e', '#9c27b0')}>
               ⚔️ 공격
             </button>
@@ -246,76 +224,90 @@ export default function CombatScreen() {
             </button>
           </div>
 
-          {/* 스킬 탭 */}
-          {tab === TAB.SKILL && (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
-              {skills.map(skillId => {
-                const baseSk = SKILLS[skillId];
-                if (!baseSk) return null;
-                const skLv = skillLevels[skillId] ?? 1;
-                const sk = getSkillAtLevel(baseSk, skLv);
-                const canUse = mp >= sk.mpCost;
-                const effectHint = getSkillEffectHint(sk);
-                const dmgPreview = getSkillDamagePreview(sk, stats);
-                return (
-                  <button
-                    key={skillId}
-                    onClick={() => doCombatSkill(skillId)}
-                    disabled={!canUse}
-                    style={{
-                      ...btnStyle('#0d1a1a', canUse ? '#00bcd4' : '#333'),
-                      opacity: canUse ? 1 : 0.5,
-                      cursor: canUse ? 'pointer' : 'not-allowed',
-                      textAlign: 'left',
-                      position: 'relative',
-                    }}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                      <div style={{ fontWeight: 600, fontSize: 12 }}>
-                        {baseSk.emoji} {baseSk.name}
-                      </div>
-                      <span style={{
-                        background: skLv === 4 ? '#ff6f00' : skLv === 3 ? '#ffd54f' : skLv === 2 ? '#00bcd4' : '#555',
-                        color: skLv >= 3 ? '#000' : '#fff',
-                        borderRadius: 3, padding: '0 5px',
-                        fontSize: 9, fontWeight: 700, marginLeft: 4, flexShrink: 0,
-                      }}>{skLv === 4 ? '✦각성' : `Lv.${skLv}`}</span>
-                    </div>
-                    <div style={{ fontSize: 10, color: '#00bcd4', marginTop: 3, lineHeight: 1.4 }}>{effectHint}</div>
-                    {dmgPreview && (
-                      <div style={{
-                        fontSize: 10, marginTop: 2,
-                        color: dmgPreview.kind === 'heal' ? '#ef9a9a' : '#81c784',
-                      }}>
-                        {dmgPreview.text}
-                      </div>
-                    )}
-                    <div style={{ fontSize: 10, color: '#666', marginTop: 2 }}>MP {sk.mpCost}</div>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+          {/* 스킬 섹션 (slotType 기준 그룹) */}
+          {(['attack', 'defense', 'special']).map(slotType => {
+            const sectionSkills = skills.filter(id => SKILLS[id]?.slotType === slotType);
+            if (sectionSkills.length === 0) return null;
+            const sectionLabel = slotType === 'attack' ? '⚔ 공격' : slotType === 'defense' ? '🛡 방어' : '✦ 특수';
+            return (
+              <div key={slotType} style={{ marginBottom: 10 }}>
+                <div style={{ fontSize: 10, color: '#888', marginBottom: 4, fontWeight: 600, letterSpacing: 1 }}>
+                  {sectionLabel}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {sectionSkills.map(skillId => {
+                    const baseSk = SKILLS[skillId];
+                    if (!baseSk) return null;
+                    const skLv = skillLevels[skillId] ?? 1;
+                    const sk = getSkillAtLevel(baseSk, skLv);
+                    const charges = skillCharges[skillId] ?? 0;
+                    const canUse = charges > 0;
+                    const chargeColor = charges === 0 ? '#555' : charges === 1 ? '#ef5350' : '#888';
+                    const effectHint = getSkillEffectHint(sk);
+                    const dmgPreview = getSkillDamagePreview(sk, stats);
+                    return (
+                      <button
+                        key={skillId}
+                        onClick={() => doCombatSkill(skillId)}
+                        disabled={!canUse}
+                        style={{
+                          ...btnStyle('#0d1a1a', canUse ? '#00bcd4' : '#333'),
+                          opacity: canUse ? 1 : 0.5,
+                          cursor: canUse ? 'pointer' : 'not-allowed',
+                          textAlign: 'left',
+                          flex: 'none',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                          <div style={{ fontWeight: 600, fontSize: 12 }}>
+                            {baseSk.emoji} {baseSk.name}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexShrink: 0 }}>
+                            <span style={{ fontSize: 10, color: chargeColor }}>×{charges} 남음</span>
+                            <span style={{
+                              background: skLv === 4 ? '#ff6f00' : skLv === 3 ? '#ffd54f' : skLv === 2 ? '#00bcd4' : '#555',
+                              color: skLv >= 3 ? '#000' : '#fff',
+                              borderRadius: 3, padding: '0 5px',
+                              fontSize: 9, fontWeight: 700,
+                            }}>{skLv === 4 ? '✦각성' : `Lv.${skLv}`}</span>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: 10, color: '#00bcd4', marginTop: 3, lineHeight: 1.4 }}>{effectHint}</div>
+                        {dmgPreview && (
+                          <div style={{
+                            fontSize: 10, marginTop: 2,
+                            color: dmgPreview.kind === 'heal' ? '#ef9a9a' : '#81c784',
+                          }}>
+                            {dmgPreview.text}
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
 
-          {/* 아이템 탭 */}
-          {tab === TAB.ITEM && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-              {inventory.filter(it => it.effect && (it.effect.hp || it.effect.mp || it.effect.cleanse)).length === 0 && (
-                <p style={{ color: '#555', fontSize: 12 }}>사용 가능한 소비 아이템 없음</p>
-              )}
-              {inventory
-                .filter(it => it.effect && (it.effect.hp || it.effect.mp || it.effect.cleanse))
-                .map(it => (
-                  <button
-                    key={it.id}
-                    onClick={() => doCombatItem(it.id)}
-                    style={{ ...btnStyle('#0a1a0a', '#4caf50'), textAlign: 'left' }}
-                  >
-                    <span style={{ fontWeight: 600, fontSize: 12 }}>{it.name}</span>
-                    <span style={{ fontSize: 11, color: '#aaa', marginLeft: 8 }}>×{it.qty}</span>
-                    <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{it.desc}</div>
-                  </button>
-                ))}
+          {/* 아이템 */}
+          {inventory.filter(it => it.effect && (it.effect.hp || it.effect.mp || it.effect.cleanse)).length > 0 && (
+            <div style={{ marginBottom: 10 }}>
+              <div style={{ fontSize: 10, color: '#888', marginBottom: 4, fontWeight: 600, letterSpacing: 1 }}>🧪 아이템</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {inventory
+                  .filter(it => it.effect && (it.effect.hp || it.effect.mp || it.effect.cleanse))
+                  .map(it => (
+                    <button
+                      key={it.id}
+                      onClick={() => doCombatItem(it.id)}
+                      style={{ ...btnStyle('#0a1a0a', '#4caf50'), textAlign: 'left', flex: 'none' }}
+                    >
+                      <span style={{ fontWeight: 600, fontSize: 12 }}>{it.name}</span>
+                      <span style={{ fontSize: 11, color: '#aaa', marginLeft: 8 }}>×{it.qty}</span>
+                      <div style={{ fontSize: 11, color: '#888', marginTop: 2 }}>{it.desc}</div>
+                    </button>
+                  ))}
+              </div>
             </div>
           )}
 

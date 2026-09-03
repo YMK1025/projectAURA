@@ -1,7 +1,7 @@
 import {
   calcPlayerAtk, calcEnemyAtk, calcPlayerDef, calcDamage,
-  calcSkillDamage, calcHeal, calcMpCost, rollDodge,
-  tickEffects, randInt, clampHp, clampMp
+  calcSkillDamage, calcHeal, rollDodge,
+  tickEffects, randInt
 } from './stats.js';
 import { SKILLS, getSkillAtLevel } from '../data/skills.js';
 import { ENEMIES } from '../data/enemies.js';
@@ -84,15 +84,12 @@ export function playerAttack(combat, playerStats, equipment, job) {
 /* ────────────────────────────────────────────
    플레이어: 스킬 사용
    ──────────────────────────────────────────── */
-export function playerSkill(combat, skillId, playerStats, equipment, job, currentMp, skillLevels = {}) {
+export function playerSkill(combat, skillId, playerStats, equipment, job, skillLevels = {}) {
   const skillBase = SKILLS[skillId];
   if (!skillBase) return { error: '알 수 없는 스킬' };
   const skill = getSkillAtLevel(skillBase, skillLevels[skillId] ?? 1);
-  const mpCost = calcMpCost(skill.mpCost, equipment);
-  if (currentMp < mpCost) return { error: 'MP 부족' };
 
   const log = [];
-  let newMp = currentMp - mpCost;
   let newEnemies = [...combat.enemies];
   let newPlayerEffects = [...combat.playerEffects];
   let hpDelta = 0;
@@ -271,7 +268,6 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
       phase: win ? 'win' : extraTurn ? 'player' : 'enemy',
       playerEffects: tickEffects(newPlayerEffects),
     },
-    newMp,
     hpDelta,
   };
 }

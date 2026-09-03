@@ -46,16 +46,8 @@ export const chapter4_aura = {
       preText: 'AURA 기지 외곽. 카이가 기다리고 있었다.\n\n"...그래. 선택했군." 그의 손에서 전기가 튀는다. "막을 수밖에 없어."',
       enemies: ['kai_boss'],
       goldReward: 200,
-      onWin:  'ch4a_rest1',
+      onWin:  'ch4a_random1',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch4a_rest1', type: 'rest',
-      title: '결의',
-      text: '카이를 제압했다. 지유가 상처를 치료해준다.\n\n"잘 선택했어요. 우리가 안에서 바꿀 수 있어요." 그녀의 눈엔 믿음이 있다.\n\n하지만 카이의 마지막 말이 머릿속에 남는다. "Echo를 막아. 그게 진짜 위협이야."',
-      restAmount: { hp: 195, mp: 150 },
-      next: 'ch4a_random1',
     },
 
     {

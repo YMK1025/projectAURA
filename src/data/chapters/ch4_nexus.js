@@ -46,16 +46,8 @@ export const chapter4_nexus = {
       preText: 'Nexus 은신처 입구. 지유가 당신 앞을 막아서고 있었다.\n\n"가게 할 수 없어요." 그녀의 목소리는 흔들리지 않는다. "당신이 틀렸어요."',
       enemies: ['jiyu_boss'],
       goldReward: 200,
-      onWin:  'ch4b_rest1',
+      onWin:  'ch4b_random1',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch4b_rest1', type: 'rest',
-      title: '탈출',
-      text: '지유를 뿌리치고 은신처를 확보했다. 카이가 상처를 치료해준다.\n\n"강 국장의 쿠데타 계획을 막으면 돼. 그러면 AURA의 부패한 구조도 무너질 거야."\n\n그가 잠시 멈춘다. "지유는... 언젠가 이해할 거야."',
-      restAmount: { hp: 195, mp: 150 },
-      next: 'ch4b_random1',
     },
 
     {

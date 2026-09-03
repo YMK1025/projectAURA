@@ -9,7 +9,7 @@ import {
   initCombat, playerAttack, playerSkill,
   playerDefend, useItemInCombat, enemyTurn,
 } from '../engine/combat.js';
-import { clampHp, clampMp, STAT_MAX } from '../engine/stats.js';
+import { clampHp, STAT_MAX } from '../engine/stats.js';
 
 const INITIAL_RELATIONS = { jiyu: 0, kai: 0 };
 
@@ -18,9 +18,9 @@ const EXP_TABLE = [0, 100, 250, 450, 700, 1050, 1500];
 
 /* ── 계열별 레벨업 스탯 증가 */
 const LEVEL_UP_GAINS = {
-  physical: { power: 5, control: 2, mental: 1, maxHp: 28, maxMp: 8  },
-  psychic:  { power: 1, control: 2, mental: 5, maxHp: 12, maxMp: 22 },
-  nature:   { power: 2, control: 1, mental: 4, maxHp: 18, maxMp: 16 },
+  physical: { power: 5, control: 2, mental: 1, maxHp: 28 },
+  psychic:  { power: 1, control: 2, mental: 5, maxHp: 12 },
+  nature:   { power: 2, control: 1, mental: 4, maxHp: 18 },
 };
 
 function applyStatChanges(stats, changes = {}) {
@@ -51,7 +51,6 @@ export const useGameStore = create((set, get) => ({
   job: null,
   stats: { power: 0, control: 0, mental: 0 },
   hp: 0, maxHp: 0,
-  mp: 0, maxMp: 0,
   gold: 0,
 
   /* ── 레벨 / 경험치 */
@@ -67,6 +66,7 @@ export const useGameStore = create((set, get) => ({
   flags: {},
   skills: [],
   skillLevels: {},
+  skillCharges: {},
   inventory: [],
   equipment: {},
 
@@ -76,6 +76,7 @@ export const useGameStore = create((set, get) => ({
 
   /* ── 전투 */
   combat: null,
+  combatReward: null,
 
   /* ── 랜덤 이벤트 */
   currentRandomEvent: null,
@@ -99,10 +100,10 @@ export const useGameStore = create((set, get) => ({
       lineage: lineageId,
       job: null,
       stats: { ...lin.initStats },
-      hp: lin.initHp, maxHp: lin.initHp,
-      mp: lin.initMp, maxMp: lin.initMp,
+      hp: 100, maxHp: 100,
       skills: [commonSkill],
       skillLevels: { [commonSkill]: 1 },
+      skillCharges: { [commonSkill]: SKILLS[commonSkill]?.maxCharges ?? 3 },
       screen: 'story',
       currentNodeId: 'ch1_s0',
       faction: 0,
@@ -119,7 +120,7 @@ export const useGameStore = create((set, get) => ({
 
   /* 2차: 직업 선택 → 진행 중인 게임에 적용 후 Ch3 시작 */
   chooseJob(jobId) {
-    const { lineage: lineageId, stats, maxHp, maxMp, hp, mp, skills, skillLevels } = get();
+    const { lineage: lineageId, stats, maxHp, hp, skills, skillLevels, skillCharges } = get();
     const lin = LINEAGES[lineageId];
     const job = JOBS[jobId];
     if (!lin || !job) return;
@@ -129,21 +130,21 @@ export const useGameStore = create((set, get) => ({
       control: Math.min(STAT_MAX, stats.control + (job.statBonus?.control ?? 0)),
       mental:  Math.min(STAT_MAX, stats.mental  + (job.statBonus?.mental  ?? 0)),
     };
-    const hpBonus  = job.maxHpBonus ?? 0;
-    const newMaxHp = maxHp + hpBonus;
-    const newHp    = Math.min(hp + hpBonus, newMaxHp);
     const jobSkill = job.jobSkillId;
     const newSkills = skills.includes(jobSkill) ? skills : [...skills, jobSkill];
     const newSkillLevels = { ...skillLevels };
     if (!newSkillLevels[jobSkill]) newSkillLevels[jobSkill] = 1;
+    const newSkillCharges = { ...skillCharges };
+    if (!newSkillCharges[jobSkill]) newSkillCharges[jobSkill] = SKILLS[jobSkill]?.maxCharges ?? 3;
 
     set({
       job: jobId,
       stats: newStats,
-      maxHp: newMaxHp,
-      hp: newHp,
+      maxHp,
+      hp,
       skills: newSkills,
       skillLevels: newSkillLevels,
+      skillCharges: newSkillCharges,
     });
     get().goToNode('ch3_s0');
   },
@@ -203,11 +204,10 @@ export const useGameStore = create((set, get) => ({
   },
 
   resolveRandomEvent(choice) {
-    const { stats, gold, hp, maxHp, mp, maxMp, flags, currentRandomEventNodeId } = get();
+    const { stats, gold, hp, maxHp, flags, currentRandomEventNodeId } = get();
     const newStats = applyStatChanges(stats, choice.statChanges);
     const newGold  = gold + (choice.goldChange ?? 0);
     const newHp    = Math.min(maxHp, clampHp(hp + (choice.hpChange ?? 0)));
-    const newMp    = Math.min(maxMp, clampMp(mp + (choice.mpChange ?? 0)));
     let newFlags = { ...flags };
     if (choice.setFlag) {
       const toSet = Array.isArray(choice.setFlag) ? choice.setFlag : [choice.setFlag];
@@ -217,7 +217,6 @@ export const useGameStore = create((set, get) => ({
       stats: newStats,
       gold: newGold,
       hp: newHp,
-      mp: newMp,
       flags: newFlags,
       currentRandomEvent: null,
       currentRandomEventNodeId: null,
@@ -228,52 +227,53 @@ export const useGameStore = create((set, get) => ({
 
   /* ── 전투 액션 */
   doCombatAttack() {
-    const { combat, stats, equipment, job, hp, maxHp } = get();
+    const { combat, stats, equipment, job, hp, maxHp, skillCharges, inventory } = get();
     const result = playerAttack(combat, stats, equipment, job);
-    get()._afterPlayerAction(result, hp, maxHp);
+    get()._afterPlayerAction(result, hp, maxHp, skillCharges, inventory);
   },
 
   doCombatSkill(skillId) {
-    const { combat, stats, equipment, job, hp, maxHp, mp, skillLevels } = get();
-    const result = playerSkill(combat, skillId, stats, equipment, job, mp, skillLevels);
+    const { combat, stats, equipment, job, hp, maxHp, skillLevels, skillCharges, inventory } = get();
+    if ((skillCharges[skillId] ?? 0) <= 0) return;
+    const result = playerSkill(combat, skillId, stats, equipment, job, skillLevels);
     if (result.error) return;
-    const { newCombat, newMp, hpDelta } = result;
+    const { newCombat, hpDelta } = result;
     const newHp = clampHp(hp + (hpDelta ?? 0));
-    get()._afterPlayerAction(newCombat, newHp, maxHp, newMp);
+    const newCharges = { ...skillCharges, [skillId]: skillCharges[skillId] - 1 };
+    get()._afterPlayerAction(newCombat, newHp, maxHp, newCharges, inventory);
   },
 
   doCombatDefend() {
-    const { combat, hp, maxHp, mp } = get();
+    const { combat, hp, maxHp, skillCharges, inventory } = get();
     const result = playerDefend(combat);
-    get()._afterPlayerAction(result, hp, maxHp, mp);
+    get()._afterPlayerAction(result, hp, maxHp, skillCharges, inventory);
   },
 
   doCombatItem(itemId) {
-    const { combat, inventory, hp, maxHp, mp, maxMp } = get();
+    const { combat, inventory, hp, maxHp, skillCharges } = get();
     const idx = inventory.findIndex(i => i.id === itemId && i.qty > 0);
     if (idx < 0) return;
     const item = inventory[idx];
-    const { newCombat, hpDelta, mpDelta } = useItemInCombat(
-      combat, item, hp, maxHp, mp, maxMp
+    const { newCombat, hpDelta } = useItemInCombat(
+      combat, item, hp, maxHp, 0, 0
     );
     const newInv = inventory
       .map((it, i) => i === idx ? { ...it, qty: it.qty - 1 } : it)
       .filter(it => it.qty > 0);
     const newHp = clampHp(hp + hpDelta);
-    const newMp = clampMp(mp + mpDelta);
-    get()._afterPlayerAction(newCombat, newHp, maxHp, newMp, newInv);
+    get()._afterPlayerAction(newCombat, newHp, maxHp, skillCharges, newInv);
   },
 
-  _afterPlayerAction(newCombat, newHp, maxHp, newMp, newInv) {
-    const { mp, inventory } = get();
-    const usedMp  = newMp  !== undefined ? newMp  : mp;
-    const usedInv = newInv !== undefined ? newInv : inventory;
+  _afterPlayerAction(newCombat, newHp, maxHp, newCharges, newInv) {
+    const { skillCharges, inventory } = get();
+    const usedCharges = newCharges !== undefined ? newCharges : skillCharges;
+    const usedInv     = newInv    !== undefined ? newInv    : inventory;
 
     if (newCombat.phase === 'win') {
-      get()._handleCombatWin(newCombat, newHp, usedMp, usedInv);
+      get()._handleCombatWin(newCombat, newHp, usedCharges, usedInv);
       return;
     }
-    set({ combat: newCombat, hp: newHp, mp: usedMp, inventory: usedInv });
+    set({ combat: newCombat, hp: newHp, skillCharges: usedCharges, inventory: usedInv });
     if (newCombat.phase === 'enemy') get().doEnemyTurn();
   },
 
@@ -288,9 +288,9 @@ export const useGameStore = create((set, get) => ({
     set({ combat: newCombat, hp: newHp });
   },
 
-  /* 전투 승리 + 경험치/레벨업 */
-  _handleCombatWin(newCombat, newHp, newMp, newInv) {
-    const { currentNodeId, gold, level, totalExp, lineage, stats, maxHp, maxMp } = get();
+  /* 전투 승리 + 경험치/레벨업 + 보상 선택 */
+  _handleCombatWin(newCombat, newHp, newCharges, newInv) {
+    const { currentNodeId, gold, level, totalExp, lineage, stats, maxHp } = get();
     const node = getNode(currentNodeId);
     const goldGain = node?.goldReward ?? 0;
     const expGain  = newCombat.enemies.reduce((sum, e) => sum + (e.expReward ?? 0), 0);
@@ -299,15 +299,13 @@ export const useGameStore = create((set, get) => ({
     let newLevel = level;
     let newStats = { ...stats };
     let newMaxHp = maxHp;
-    let newMaxMp = maxMp;
     let gains = null;
 
     while (newLevel < EXP_TABLE.length - 1 && newTotalExp >= expForLevel(newLevel)) {
       newLevel++;
-      const g = LEVEL_UP_GAINS[lineage] ?? { power: 2, control: 2, mental: 2, maxHp: 15, maxMp: 10 };
+      const g = LEVEL_UP_GAINS[lineage] ?? { power: 2, control: 2, mental: 2, maxHp: 15 };
       newStats = applyStatChanges(newStats, { power: g.power, control: g.control, mental: g.mental });
       newMaxHp += g.maxHp;
-      newMaxMp += g.maxMp;
       gains = g;
     }
 
@@ -316,7 +314,6 @@ export const useGameStore = create((set, get) => ({
     set({
       combat: null,
       hp: Math.min(newHp, newMaxHp),
-      mp: Math.min(newMp, newMaxMp),
       inventory: newInv,
       gold: gold + goldGain,
       totalExp: newTotalExp,
@@ -324,15 +321,60 @@ export const useGameStore = create((set, get) => ({
       level: newLevel,
       stats: newStats,
       maxHp: newMaxHp,
-      maxMp: newMaxMp,
+      skillCharges: newCharges,
       levelUpGains: didLevelUp ? gains : null,
     });
 
-    if (didLevelUp) {
+    /* 보상 풀 생성 */
+    const rewardPool = [];
+    if (newHp < newMaxHp * 0.7) {
+      rewardPool.push({ type: 'hp', amount: 60, label: 'HP +60 회복', desc: '전투의 상처를 회복한다' });
+    }
+    rewardPool.push({ type: 'stat', stat: 'power',   amount: 2, label: '파워 +2',  desc: '신체 능력이 강화된다' });
+    rewardPool.push({ type: 'stat', stat: 'mental',  amount: 2, label: '정신 +2',  desc: '정신력이 강화된다' });
+    rewardPool.push({ type: 'stat', stat: 'control', amount: 2, label: '제어 +2',  desc: '능력 제어가 정교해진다' });
+    rewardPool.push({ type: 'charges', label: '스킬 재충전', desc: '보유한 모든 스킬 횟수 +1 회복' });
+    rewardPool.push({ type: 'gold', amount: 50, label: '골드 +50', desc: '전투 보상을 획득한다' });
+
+    const shuffled = rewardPool.sort(() => Math.random() - 0.5);
+    const options = shuffled.slice(0, 3);
+
+    set({
+      combatReward: { options, pendingNode: node?.onWin },
+      screen: 'combat_reward',
+    });
+  },
+
+  chooseCombatReward(option) {
+    const { hp, maxHp, stats, gold, skills, skillCharges, combatReward, levelUpGains } = get();
+    let newHp      = hp;
+    let newStats   = { ...stats };
+    let newGold    = gold;
+    let newCharges = { ...skillCharges };
+
+    if (option.type === 'hp') {
+      newHp = Math.min(maxHp, clampHp(hp + option.amount));
+    }
+    if (option.type === 'stat') {
+      newStats = applyStatChanges(newStats, { [option.stat]: option.amount });
+    }
+    if (option.type === 'gold') {
+      newGold = gold + option.amount;
+    }
+    if (option.type === 'charges') {
+      skills.forEach(id => {
+        const maxC = SKILLS[id]?.maxCharges ?? 3;
+        newCharges[id] = Math.min(maxC, (newCharges[id] ?? 0) + 1);
+      });
+    }
+
+    const nextNode = combatReward?.pendingNode;
+    set({ hp: newHp, stats: newStats, gold: newGold, skillCharges: newCharges, combatReward: null });
+
+    if (levelUpGains) {
       set({ screen: 'levelup' });
-    } else {
-      const nextId = node?.onWin;
-      if (nextId) get().goToNode(nextId);
+    } else if (nextNode) {
+      get().goToNode(nextNode);
     }
   },
 
@@ -349,10 +391,11 @@ export const useGameStore = create((set, get) => ({
   },
 
   chooseAwakening(skillId) {
-    const { skillLevels, currentNodeId } = get();
+    const { skillLevels, skillCharges, currentNodeId } = get();
     set({
       awakeningSkillId: skillId,
       skillLevels: { ...skillLevels, [skillId]: 4 },
+      skillCharges: { ...skillCharges, [skillId]: SKILLS[skillId]?.maxCharges ?? 2 },
     });
     const node = getNode(currentNodeId);
     const nextId = node?.onWin;
@@ -361,7 +404,7 @@ export const useGameStore = create((set, get) => ({
 
   /* 챕터 스킬 습득 */
   learnChapterSkill() {
-    const { currentNodeId, lineage, skills, skillLevels } = get();
+    const { currentNodeId, lineage, skills, skillLevels, skillCharges } = get();
     const node = getNode(currentNodeId);
     if (!node?.skillByLineage) return;
     const skillId = node.skillByLineage[lineage];
@@ -372,21 +415,25 @@ export const useGameStore = create((set, get) => ({
     const newSkills = skills.includes(skillId) ? skills : [...skills, skillId];
     const newLevels = { ...skillLevels };
     if (!newLevels[skillId]) newLevels[skillId] = 1;
-    set({ skills: newSkills, skillLevels: newLevels });
+    const newCharges = { ...skillCharges };
+    if (!newCharges[skillId]) newCharges[skillId] = SKILLS[skillId]?.maxCharges ?? 3;
+    set({ skills: newSkills, skillLevels: newLevels, skillCharges: newCharges });
     if (node.next) get().goToNode(node.next);
   },
 
   /* 스킬 결정체 사용 */
   useSkillCrystal(itemId) {
-    const { inventory, skills, skillLevels } = get();
+    const { inventory, skills, skillLevels, skillCharges } = get();
     const upgradeable = skills.filter(id => (skillLevels[id] ?? 1) < 3);
     if (upgradeable.length === 0) return;
     const toUpgrade = upgradeable[0];
     const newLevels = { ...skillLevels, [toUpgrade]: (skillLevels[toUpgrade] ?? 1) + 1 };
+    const maxC = SKILLS[toUpgrade]?.maxCharges ?? 3;
+    const newCharges = { ...skillCharges, [toUpgrade]: maxC };
     const newInv = inventory
       .map(it => it.id === itemId ? { ...it, qty: it.qty - 1 } : it)
       .filter(it => it.qty > 0);
-    set({ skillLevels: newLevels, inventory: newInv });
+    set({ skillLevels: newLevels, skillCharges: newCharges, inventory: newInv });
   },
 
   /* ── 상점 */
@@ -410,32 +457,21 @@ export const useGameStore = create((set, get) => ({
     set({ equipment: { ...equipment, [slot]: item }, inventory: newInv });
   },
 
-  /* ── 휴식 */
-  doRest() {
-    const node = getNode(get().currentNodeId);
-    if (!node?.restAmount) return;
-    const { hp, maxHp, mp, maxMp } = get();
-    const newHp = Math.min(maxHp, clampHp(hp + (node.restAmount.hp ?? 0)));
-    const newMp = Math.min(maxMp, clampMp(mp + (node.restAmount.mp ?? 0)));
-    set({ hp: newHp, mp: newMp });
-    if (node.next) get().goToNode(node.next);
-  },
-
   /* ── 리셋 */
   resetGame() {
     set({
       screen: 'title',
       playerName: '', lineage: null, job: null,
       stats: { power: 0, control: 0, mental: 0 },
-      hp: 0, maxHp: 0, mp: 0, maxMp: 0,
+      hp: 0, maxHp: 0,
       gold: 0,
       level: 1, totalExp: 0, expGainedLast: 0, levelUpGains: null,
       currentNodeId: 'ch1_s0',
       faction: 0, relations: { ...INITIAL_RELATIONS },
       flags: {},
-      skills: [], skillLevels: {}, inventory: [], equipment: {},
+      skills: [], skillLevels: {}, skillCharges: {}, inventory: [], equipment: {},
       awakeningSkillId: null, awakeningDone: false,
-      combat: null, endingType: null,
+      combat: null, combatReward: null, endingType: null,
       currentRandomEvent: null, currentRandomEventNodeId: null,
     });
   },

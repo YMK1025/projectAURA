@@ -5,7 +5,7 @@ import StatBar from './StatBar.jsx';
 const EXP_TABLE = [0, 100, 250, 450, 700, 1050, 1500];
 
 export default function HUD() {
-  const { hp, maxHp, mp, maxMp, stats, gold, faction, level, totalExp, equipment } = useGameStore();
+  const { hp, maxHp, stats, gold, faction, level, totalExp, equipment } = useGameStore();
   const [showInfo, setShowInfo] = useState(false);
 
   const factionLabel = faction > 20 ? 'AURA 성향' : faction < -20 ? 'Nexus 성향' : '중립';
@@ -24,7 +24,6 @@ export default function HUD() {
       borderRadius: 8, padding: '12px 16px', fontSize: 12, color: '#ccc',
     }}>
       <StatBar label="HP" value={hp} max={maxHp} color="#ef5350" />
-      <StatBar label="MP" value={mp} max={maxMp} color="#7e57c2" />
 
       {/* 레벨 & EXP */}
       <div style={{ marginTop: 8, marginBottom: 4 }}>
@@ -66,12 +65,8 @@ export default function HUD() {
         }}>
           <div><b style={{ color: '#ffd54f' }}>파워</b> — 일반 공격·물리 스킬 위력</div>
           <div><b style={{ color: '#4fc3f7' }}>제어</b> — 효과 적중·방어 효율</div>
-          <div><b style={{ color: '#ce93d8' }}>정신</b> — 정신 스킬 위력·MP 회복</div>
+          <div><b style={{ color: '#ce93d8' }}>정신</b> — 정신 스킬 위력</div>
           <div><b style={{ color: '#ef5350' }}>HP</b> — 현재/최대 체력 ({hp}/{maxHp})</div>
-          <div><b style={{ color: '#7e57c2' }}>MP</b> — 스킬 사용 자원 ({mp}/{maxMp})</div>
-          <div style={{ marginTop: 4, borderTop: '1px solid #1e1e3f', paddingTop: 4, color: '#888' }}>
-            일반 공격 예상: ~{Math.round(stats.power * 2 * 0.9)}–{Math.round(stats.power * 2 * 1.4 + 15)}
-          </div>
         </div>
       )}
 

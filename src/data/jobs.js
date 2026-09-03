@@ -8,7 +8,6 @@ export const JOBS = {
     flavor: '나를 넘어가려면 먼저 쓰러뜨려라',
     jobSkillId: 'iron_wall',
     statBonus: { control: 10 },
-    maxHpBonus: 60,
     passive: '받는 피해 10% 영구 감소',
   },
   beast_shifter: {

@@ -55,16 +55,8 @@ export const chapter1 = {
       preText: '기지 외벽 골목. 후드를 깊게 눌러쓴 요원이 도주를 시도한다.\n\n"잡아야 해요." 지유가 앞서 달린다.',
       enemies: ['nexus_agent'],
       goldReward: 70,
-      onWin:  'ch1_rest1',
+      onWin:  'ch1_random1',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch1_rest1', type: 'rest',
-      title: 'AURA 회복 구역',
-      text: '기지 내부의 의무실. 전투 후 지유가 회복 시설로 안내한다.\n\n"잘 했어요. 능력을 처음 실전에 쓴 치고는."',
-      restAmount: { hp: 80, mp: 75 },
-      next: 'ch1_random1',
     },
 
     {
@@ -143,16 +135,8 @@ export const chapter1 = {
       preText: '"멈추고 싶은데... 몸이 말을 안 들어!"\n\n소녀의 능력이 폭발하듯 퍼진다. 선택의 여지가 없다. 제압해야 한다.',
       enemies: ['rogue_elite'],
       goldReward: 120,
-      onWin:  'ch1_rest2',
+      onWin:  'ch2_s0',
       onLose: 'gameover',
-    },
-
-    {
-      id: 'ch1_rest2', type: 'rest',
-      title: '나비의 귀환',
-      text: '나비를 제압하고 기지로 데려왔다. 지유의 치료를 받은 소녀의 눈빛이 돌아온다.\n\n"고마워요. 무서웠는데..."\n\n지유가 조용히 말한다. "이런 아이들이 더 있어요. 우리가 보호해야 해요."\n\n당신은 처음으로 AURA가 무엇을 하는 조직인지 실감한다.',
-      restAmount: { hp: 130, mp: 115 },
-      next: 'ch2_s0',
     },
   ],
 };
