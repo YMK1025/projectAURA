@@ -4,6 +4,7 @@ import { JOBS } from '../data/jobs.js';
 import { SKILLS } from '../data/skills.js';
 import { ITEMS } from '../data/items.js';
 import { getNode } from '../data/chapters/index.js';
+import { RANDOM_EVENTS } from '../data/randomEvents.js';
 import {
   initCombat, playerAttack, playerSkill,
   playerDefend, useItemInCombat, enemyTurn,
@@ -75,6 +76,10 @@ export const useGameStore = create((set, get) => ({
 
   /* ── 전투 */
   combat: null,
+
+  /* ── 랜덤 이벤트 */
+  currentRandomEvent: null,
+  currentRandomEventNodeId: null,
 
   /* ── 엔딩 */
   endingType: null,
@@ -178,11 +183,47 @@ export const useGameStore = create((set, get) => ({
     if (nodeId === 'job_select')   { set({ screen: 'job_select' }); return; }
     const node = getNode(nodeId);
     if (!node) return;
+    if (node.type === 'random_event') {
+      const pool = node.pool;
+      const ev = RANDOM_EVENTS[pool[Math.floor(Math.random() * pool.length)]];
+      if (!ev) return;
+      set({
+        currentRandomEvent: ev,
+        currentRandomEventNodeId: nodeId,
+        currentNodeId: nodeId,
+        screen: 'random_event',
+      });
+      return;
+    }
     set({
       currentNodeId: nodeId,
       screen: node.type === 'combat' ? 'combat' : node.type,
       combat: node.type === 'combat' ? initCombat(node.enemies) : null,
     });
+  },
+
+  resolveRandomEvent(choice) {
+    const { stats, gold, hp, maxHp, mp, maxMp, flags, currentRandomEventNodeId } = get();
+    const newStats = applyStatChanges(stats, choice.statChanges);
+    const newGold  = gold + (choice.goldChange ?? 0);
+    const newHp    = Math.min(maxHp, clampHp(hp + (choice.hpChange ?? 0)));
+    const newMp    = Math.min(maxMp, clampMp(mp + (choice.mpChange ?? 0)));
+    let newFlags = { ...flags };
+    if (choice.setFlag) {
+      const toSet = Array.isArray(choice.setFlag) ? choice.setFlag : [choice.setFlag];
+      for (const f of toSet) newFlags[f] = true;
+    }
+    set({
+      stats: newStats,
+      gold: newGold,
+      hp: newHp,
+      mp: newMp,
+      flags: newFlags,
+      currentRandomEvent: null,
+      currentRandomEventNodeId: null,
+    });
+    const node = getNode(currentRandomEventNodeId);
+    if (node?.next) get().goToNode(node.next);
   },
 
   /* ── 전투 액션 */
@@ -395,6 +436,7 @@ export const useGameStore = create((set, get) => ({
       skills: [], skillLevels: {}, inventory: [], equipment: {},
       awakeningSkillId: null, awakeningDone: false,
       combat: null, endingType: null,
+      currentRandomEvent: null, currentRandomEventNodeId: null,
     });
   },
 }));

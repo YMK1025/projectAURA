@@ -74,6 +74,12 @@ export const chapter3 = {
       title: '귀환 후 정비',
       text: '임무를 마치고 기지로 돌아온다. 지유가 간단한 치료를 해준다.\n\n창밖 도시의 불빛. 누군가의 말이 계속 머릿속을 맴돈다.',
       restAmount: { hp: 150, mp: 120 },
+      next: 'ch3_random1',
+    },
+
+    {
+      id: 'ch3_random1', type: 'random_event',
+      pool: ['re_aura_insider', 're_unstable_reaction', 're_abandoned_cache', 're_awakening_surge', 're_crossroads_choice'],
       next: 'ch3_shop1',
     },
 

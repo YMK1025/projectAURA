@@ -108,6 +108,28 @@ export default function CombatScreen() {
               <span style={{ fontSize: 12, color: '#888' }}>{e.currentHp}/{e.maxHp}</span>
             </div>
             <StatBar value={e.currentHp} max={e.maxHp} color="#ef5350" label="" />
+            {e.currentHp > 0 && e.staggerMax && (
+              <div style={{ marginTop: 4 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
+                  <span style={{ fontSize: 9, color: '#888' }}>자세</span>
+                  <div style={{ flex: 1, height: 4, background: '#1a1a00', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{
+                      width: `${Math.min(100, ((e.staggerCurrent ?? 0) / e.staggerMax) * 100)}%`,
+                      height: '100%', background: '#ffd54f', borderRadius: 2,
+                      transition: 'width 0.2s',
+                    }} />
+                  </div>
+                </div>
+              </div>
+            )}
+            {e.currentHp > 0 && e.weakTo && (
+              <div style={{
+                display: 'inline-block', marginTop: 3,
+                fontSize: 10, color: '#fff176', fontWeight: 600,
+              }}>
+                ⚡ 약점: {e.weakTo === 'physical' ? '파워' : e.weakTo === 'psychic' ? '정신' : '자연'}
+              </div>
+            )}
             {e.effects?.length > 0 && (
               <div style={{ display: 'flex', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                 {e.effects.map((ef, j) => (

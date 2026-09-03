@@ -14,6 +14,7 @@ import LevelUpScreen         from './components/screens/LevelUpScreen.jsx';
 import SkillLearnScreen     from './components/screens/SkillLearnScreen.jsx';
 import SkillAwakeningScreen from './components/screens/SkillAwakeningScreen.jsx';
 import JobSelectScreen      from './components/screens/JobSelectScreen.jsx';
+import RandomEventScreen   from './components/screens/RandomEventScreen.jsx';
 
 class ErrorBoundary extends Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -42,6 +43,7 @@ const SCREEN_MAP = {
   skill_learn:      SkillLearnScreen,
   skill_awakening:  SkillAwakeningScreen,
   job_select:       JobSelectScreen,
+  random_event:     RandomEventScreen,
   ending:      EndingScreen,
   gameover:  GameOverScreen,
 };

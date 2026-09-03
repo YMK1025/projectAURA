@@ -46,6 +46,12 @@ export const chapter2 = {
         psychic:  'psychic_scan',
         nature:   'stone_wall',
       },
+      next: 'ch2_random1',
+    },
+
+    {
+      id: 'ch2_random1', type: 'random_event',
+      pool: ['re_rogue_awakened_plea', 're_nexus_contact', 're_scavenger_loot', 're_training_opportunity', 're_awakening_surge'],
       next: 'ch2_event1',
     },
 

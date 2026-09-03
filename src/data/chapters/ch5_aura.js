@@ -33,8 +33,14 @@ export const chapter5_aura = {
       preText: '거점 내부. Nexus 요원들과 오라클 추종자들이 함께 방어선을 치고 있다.\n\n"연합했군요." 지유가 이를 간다.',
       enemies: ['nexus_agent', 'oracle_follower'],
       goldReward: 170,
-      onWin:  'ch5_aura_event1',
+      onWin:  'ch5_aura_random1',
       onLose: 'gameover',
+    },
+
+    {
+      id: 'ch5_aura_random1', type: 'random_event',
+      pool: ['re_overload_push', 're_shortcut_tunnel', 're_unstable_reaction', 're_awakening_surge', 're_crossroads_choice'],
+      next: 'ch5_aura_event1',
     },
 
     {

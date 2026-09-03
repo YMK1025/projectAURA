@@ -33,8 +33,14 @@ export const chapter5_nexus = {
       preText: '본부 내부. 특수 경비 요원들이 겹겹이 방어하고 있다.\n\n"여기선 소리 내지 말고. 능력으로 제압해요." 카이가 이를 간다.',
       enemies: ['aura_guard', 'aura_elite'],
       goldReward: 170,
-      onWin:  'ch5_nexus_event1',
+      onWin:  'ch5_nexus_random1',
       onLose: 'gameover',
+    },
+
+    {
+      id: 'ch5_nexus_random1', type: 'random_event',
+      pool: ['re_overload_push', 're_black_deal', 're_unstable_reaction', 're_awakening_surge', 're_crossroads_choice'],
+      next: 'ch5_nexus_event1',
     },
 
     {

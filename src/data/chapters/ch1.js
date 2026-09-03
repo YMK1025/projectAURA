@@ -64,6 +64,12 @@ export const chapter1 = {
       title: 'AURA 회복 구역',
       text: '기지 내부의 의무실. 전투 후 지유가 회복 시설로 안내한다.\n\n"잘 했어요. 능력을 처음 실전에 쓴 치고는."',
       restAmount: { hp: 120, mp: 100 },
+      next: 'ch1_random1',
+    },
+
+    {
+      id: 'ch1_random1', type: 'random_event',
+      pool: ['re_lost_citizen', 're_aura_supply_drop', 're_training_opportunity', 're_focus_session'],
       next: 'ch1_event1',
     },
 

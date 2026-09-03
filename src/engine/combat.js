@@ -14,6 +14,7 @@ export function initCombat(enemies) {
     enemies: enemies.map(id => ({
       ...ENEMIES[id],
       currentHp: ENEMIES[id].maxHp,
+      staggerCurrent: 0,
       effects: [],
       phases: (ENEMIES[id].phases ?? []).map(p => ({ ...p, triggered: false })),
     })),
@@ -38,9 +39,26 @@ export function playerAttack(combat, playerStats, equipment, job) {
   // 뇌격사 패시브: 일반 공격력 +15%
   if (job === 'storm_caller') dmg = Math.floor(dmg * 1.15);
 
+  // 스태거된 적에게 2배 피해
+  if (target.effects?.find(ef => ef.type === 'staggered')) dmg = Math.round(dmg * 2);
+
+  // 속성 약점/반감 (일반 공격 = physical)
+  const attackElement = 'physical';
   const log = [];
-  log.push(`⚔️ 공격! ${target.name}에게 **${dmg}** 피해.`);
+  if (target.weakTo === attackElement) {
+    dmg = Math.round(dmg * 1.5);
+    log.push(`⚡ 약점! ${target.name}에게 **${dmg}** 피해.`);
+  } else if (target.resistTo === attackElement) {
+    dmg = Math.round(dmg * 0.75);
+    log.push(`🛡 반감. ${target.name}에게 **${dmg}** 피해.`);
+  } else {
+    log.push(`⚔️ 공격! ${target.name}에게 **${dmg}** 피해.`);
+  }
+
   let newEnemies = dealDamageToEnemy(combat.enemies, target.id, dmg, log);
+
+  // 스태거 빌드
+  newEnemies = applyStagger(newEnemies, target.id, 15, log);
 
   // 화염술사 패시브: 10% 확률 화상 부여
   if (job === 'pyromancer' && Math.random() < 0.1) {
@@ -81,23 +99,41 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
   let extraTurn = false;
 
   const target = getFirstAliveEnemy(newEnemies);
+  const skillElement = SKILLS[skillId]?.element ?? 'physical';
 
   if (skill.type === 'damage') {
     const tEffects = target?.effects ?? [];
-    const dmg = calcSkillDamage(skill, playerStats, tEffects);
+    let dmg = calcSkillDamage(skill, playerStats, tEffects);
 
     if (skill.target === 'all_enemies') {
+      // 전체 공격 — 속성 체크는 개별 적마다, 스태거 처리도 개별
       if (skill.hits && skill.hits > 1) {
-        const totalDmg = dmg * skill.hits;
-        log.push(`⚡ ${skill.name}! 모든 적에게 **${dmg}** × ${skill.hits}히트 (합계 **${totalDmg}**)!`);
-        newEnemies = newEnemies.map(e =>
-          e.currentHp > 0 ? { ...e, currentHp: Math.max(0, e.currentHp - totalDmg) } : e
-        );
+        newEnemies = newEnemies.map(e => {
+          if (e.currentHp <= 0) return e;
+          let perHitDmg = dmg;
+          if (e.effects?.find(ef => ef.type === 'staggered')) perHitDmg = Math.round(perHitDmg * 2);
+          const finalDmg = applyElementMod(perHitDmg, skillElement, e, log);
+          const totalDmg = finalDmg * skill.hits;
+          return { ...e, currentHp: Math.max(0, e.currentHp - totalDmg) };
+        });
+        log.push(`⚡ ${skill.name}! 모든 적에게 ${skill.hits}히트!`);
+        // 스태거: all_enemies multi-hit — 12 per enemy (split logic ~25 total)
+        newEnemies.filter(e => e.currentHp > 0).forEach(e => {
+          newEnemies = applyStagger(newEnemies, e.id, 12, log);
+        });
       } else {
-        log.push(`💥 ${skill.name}! 모든 적에게 **${dmg}** 피해.`);
-        newEnemies = newEnemies.map(e =>
-          e.currentHp > 0 ? { ...e, currentHp: Math.max(0, e.currentHp - dmg) } : e
-        );
+        newEnemies = newEnemies.map(e => {
+          if (e.currentHp <= 0) return e;
+          let d = dmg;
+          if (e.effects?.find(ef => ef.type === 'staggered')) d = Math.round(d * 2);
+          const finalDmg = applyElementMod(d, skillElement, e, log);
+          return { ...e, currentHp: Math.max(0, e.currentHp - finalDmg) };
+        });
+        log.push(`💥 ${skill.name}! 모든 적에게 공격!`);
+        // 스태거: all_enemies single hit — 12 per enemy
+        newEnemies.filter(e => e.currentHp > 0).forEach(e => {
+          newEnemies = applyStagger(newEnemies, e.id, 12, log);
+        });
       }
       newEnemies.forEach(e => {
         const wasAlive = combat.enemies.find(ce => ce.id === e.id)?.currentHp > 0;
@@ -136,10 +172,20 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
         log.push(`🔴 출혈 전파!`);
       }
     } else if (target) {
-      log.push(`✨ ${skill.name}! ${target.name}에게 **${dmg}** 피해.`);
-      newEnemies = dealDamageToEnemy(newEnemies, target.id, dmg, log);
+      // 단일 대상
+      if (target.effects?.find(ef => ef.type === 'staggered')) dmg = Math.round(dmg * 2);
+      const finalDmg = applyElementMod(dmg, skillElement, target, log);
+      if (!log.some(l => l.includes(target.name) && l.includes('피해'))) {
+        log.push(`✨ ${skill.name}! ${target.name}에게 **${finalDmg}** 피해.`);
+      }
+      newEnemies = dealDamageToEnemy(newEnemies, target.id, finalDmg, log);
+
+      // 스태거 — 단일 공격
+      const staggerAmt = skill.hits && skill.hits > 1 ? 25 : 20;
+      newEnemies = applyStagger(newEnemies, target.id, staggerAmt, log);
+
       if (skill.lifesteal) {
-        const heal = Math.floor(dmg * skill.lifesteal);
+        const heal = Math.floor(finalDmg * skill.lifesteal);
         hpDelta += heal;
         log.push(`🩸 흡혈: HP **+${heal}** 회복.`);
       }
@@ -197,12 +243,14 @@ export function playerSkill(combat, skillId, playerStats, equipment, job, curren
   } else if (skill.type === 'debuff' && target) {
     newEnemies = applyEffectToEnemy(newEnemies, target.id, skill.effect, job);
     log.push(`🌀 ${skill.name}! ${target.name}에게 ${getEffectDesc(skill.effect)}.`);
+    newEnemies = applyStagger(newEnemies, target.id, 10, log);
 
   } else if (skill.type === 'special') {
     if (skill.dominateMult !== undefined && target) {
       const selfDmg = Math.floor(target.atk * skill.dominateMult);
       newEnemies = dealDamageToEnemy(newEnemies, target.id, selfDmg, log);
       log.push(`🧠 ${skill.name}! ${target.name}이(가) 자신을 공격! **${selfDmg}** 피해.`);
+      newEnemies = applyStagger(newEnemies, target.id, 15, log);
       if (skill.followEffect) {
         newEnemies = applyEffectToEnemy(newEnemies, target.id, skill.followEffect, job);
         log.push(`🌀 ${target.name}에게 ${getEffectDesc(skill.followEffect)} 효과!`);
@@ -319,6 +367,14 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
     const stun = newEnemies[i].effects?.find(ef => ef.type === 'stun');
     if (stun) {
       log.push(`😵 ${e.name} 행동 불능!`);
+      newEnemies[i] = { ...newEnemies[i], effects: tickEffects(newEnemies[i].effects) };
+      continue;
+    }
+
+    // 스태거
+    const staggered = newEnemies[i].effects?.find(ef => ef.type === 'staggered');
+    if (staggered) {
+      log.push(`💥 ${e.name} 스태거! 행동 불능.`);
       newEnemies[i] = { ...newEnemies[i], effects: tickEffects(newEnemies[i].effects) };
       continue;
     }
@@ -465,6 +521,43 @@ function makeDebuffEffect(type) {
   return map[type] ?? { type, duration: 1 };
 }
 
+/* ── 스태거 적용 헬퍼 ─────────────────────────── */
+function applyStagger(enemies, targetId, amount, log) {
+  return enemies.map(e => {
+    if (e.id !== targetId) return e;
+    if (e.currentHp <= 0) return e;
+    if (!e.staggerMax) return e;
+    // 이미 스태거 상태면 스킵
+    if (e.effects?.find(ef => ef.type === 'staggered')) return e;
+    const newStagger = Math.min(e.staggerMax, (e.staggerCurrent ?? 0) + amount);
+    if (newStagger >= e.staggerMax) {
+      const newEffects = [
+        ...(e.effects ?? []),
+        { type: 'staggered', duration: 1, id: 'staggered_' + Date.now() + Math.random() },
+      ];
+      log.push(`💥 **${e.name} 스태거!** 자세가 무너졌다! (1턴 동안 2배 피해 + 행동 불능)`);
+      return { ...e, staggerCurrent: 0, effects: newEffects };
+    }
+    return { ...e, staggerCurrent: newStagger };
+  });
+}
+
+/* ── 속성 약점/반감 적용 헬퍼 ──────────────────── */
+function applyElementMod(dmg, element, enemy, log) {
+  if (enemy.weakTo === element) {
+    const result = Math.round(dmg * 1.5);
+    log.push(`⚡ 약점! ${enemy.name}에게 **${result}** 피해.`);
+    return result;
+  }
+  if (enemy.resistTo === element) {
+    const result = Math.round(dmg * 0.75);
+    log.push(`🛡 반감. ${enemy.name}에게 **${result}** 피해.`);
+    return result;
+  }
+  log.push(`✨ ${enemy.name}에게 **${dmg}** 피해.`);
+  return dmg;
+}
+
 export function getEffectDesc(effect) {
   const map = {
     stun:       '행동 불능',
@@ -477,6 +570,7 @@ export function getEffectDesc(effect) {
     burn:       '화상',
     poison:     '독',
     bleed:      '출혈',
+    staggered:  '스태거',
   };
   return map[effect?.type] ?? effect?.type ?? '?';
 }
