@@ -7,9 +7,9 @@ export const ENEMIES = {
 
   aura_guard: {
     id: 'aura_guard', name: 'AURA 경비원', emoji: '🕴️',
-    maxHp: 192, atk: 36, def: 7,
+    maxHp: 65, atk: 15, def: 2,
     expReward: 40, goldReward: 50,
-    weakTo: 'psychic', staggerMax: 70,
+    weakTo: 'psychic', staggerMax: 40,
     itemDrop: { itemId: 'recovery_s', chance: 0.3 },
     pattern: [
       { action: 'attack', weight: 7, hint: '천천히 자세를 낮추며 당신을 향해 다가온다...' },
@@ -18,9 +18,9 @@ export const ENEMIES = {
   },
   nexus_agent: {
     id: 'nexus_agent', name: 'Nexus 요원', emoji: '🥷',
-    maxHp: 180, atk: 46, def: 5,
+    maxHp: 55, atk: 18, def: 1,
     expReward: 55, goldReward: 65,
-    weakTo: 'nature', staggerMax: 65,
+    weakTo: 'nature', staggerMax: 35,
     itemDrop: { itemId: 'stabilizer', chance: 0.25 },
     pattern: [
       { action: 'attack', weight: 6, hint: '눈빛이 날카롭게 좁혀지며 몸을 틀기 시작한다...' },
@@ -30,9 +30,9 @@ export const ENEMIES = {
   },
   rogue_awakened: {
     id: 'rogue_awakened', name: '폭주 각성자', emoji: '⚡',
-    maxHp: 240, atk: 52, def: 4,
+    maxHp: 80, atk: 22, def: 1,
     expReward: 60, goldReward: 80,
-    weakTo: 'physical', resistTo: 'psychic', staggerMax: 75,
+    weakTo: 'physical', resistTo: 'psychic', staggerMax: 45,
     itemDrop: { itemId: 'energy_drink', chance: 0.4 },
     pattern: [
       { action: 'attack', weight: 5, hint: '억제되지 못한 에너지가 주먹 주변에서 튀어 오른다...' },
@@ -42,9 +42,9 @@ export const ENEMIES = {
   },
   oracle_follower: {
     id: 'oracle_follower', name: '오라클 추종자', emoji: '👤',
-    maxHp: 192, atk: 42, def: 6,
+    maxHp: 60, atk: 16, def: 2,
     expReward: 55, goldReward: 65,
-    weakTo: 'physical', resistTo: 'psychic', staggerMax: 70,
+    weakTo: 'physical', resistTo: 'psychic', staggerMax: 40,
     itemDrop: { itemId: 'antidote', chance: 0.2 },
     pattern: [
       { action: 'attack', weight: 5, hint: '무표정한 얼굴로 한 걸음씩 접근한다...' },
@@ -54,9 +54,9 @@ export const ENEMIES = {
   },
   oracle_agent: {
     id: 'oracle_agent', name: '오라클 전투 요원', emoji: '🕵️',
-    maxHp: 252, atk: 60, def: 10,
+    maxHp: 120, atk: 35, def: 4,
     expReward: 70, goldReward: 90,
-    weakTo: 'physical', resistTo: 'psychic', staggerMax: 80,
+    weakTo: 'physical', resistTo: 'psychic', staggerMax: 55,
     itemDrop: { itemId: 'stabilizer', chance: 0.3 },
     pattern: [
       { action: 'attack', weight: 4, hint: '차갑게 당신을 훑어보더니 손을 앞으로 내민다...' },
@@ -66,9 +66,9 @@ export const ENEMIES = {
   },
   nexus_elite: {
     id: 'nexus_elite', name: 'Nexus 정예 요원', emoji: '🔷',
-    maxHp: 276, atk: 72, def: 12,
+    maxHp: 140, atk: 45, def: 5,
     expReward: 75, goldReward: 100,
-    weakTo: 'nature', staggerMax: 100,
+    weakTo: 'nature', staggerMax: 65,
     itemDrop: { itemId: 'energy_drink', chance: 0.3 },
     pattern: [
       { action: 'attack', weight: 4, hint: '발을 어깨 너비로 벌리고 중심을 잡는다...' },
@@ -78,9 +78,9 @@ export const ENEMIES = {
   },
   aura_elite: {
     id: 'aura_elite', name: 'AURA 특수 요원', emoji: '🔶',
-    maxHp: 288, atk: 68, def: 15,
+    maxHp: 110, atk: 28, def: 6,
     expReward: 75, goldReward: 100,
-    weakTo: 'psychic', staggerMax: 110,
+    weakTo: 'psychic', staggerMax: 60,
     itemDrop: { itemId: 'recovery_s', chance: 0.3 },
     pattern: [
       { action: 'attack', weight: 4, hint: '짧게 숨을 들이마시며 눈이 당신을 고정한다...' },
@@ -93,9 +93,9 @@ export const ENEMIES = {
 
   rogue_elite: {
     id: 'rogue_elite', name: '나비 (폭주 각성자)', emoji: '🦋',
-    maxHp: 300, atk: 67, def: 8,
+    maxHp: 150, atk: 28, def: 3,
     expReward: 100, goldReward: 120,
-    isBoss: true, weakTo: 'physical', staggerMax: 200,
+    isBoss: true, weakTo: 'physical', staggerMax: 120,
     phases: [
       { threshold: 0.6, effect: { type: 'atkUp', amount: 15 } },
     ],
@@ -109,9 +109,9 @@ export const ENEMIES = {
   },
   nexus_operative: {
     id: 'nexus_operative', name: '야차 (오라클 연계 요원)', emoji: '🐉',
-    maxHp: 425, atk: 84, def: 13,
+    maxHp: 220, atk: 40, def: 5,
     expReward: 150, goldReward: 170,
-    isBoss: true, weakTo: 'nature', staggerMax: 220,
+    isBoss: true, weakTo: 'nature', staggerMax: 150,
     phases: [
       { threshold: 0.6, effect: { type: 'regen', amount: 100 } },
     ],
@@ -125,9 +125,9 @@ export const ENEMIES = {
   },
   oracle_commander: {
     id: 'oracle_commander', name: '가시 (오라클 간부)', emoji: '🌹',
-    maxHp: 625, atk: 98, def: 16,
+    maxHp: 320, atk: 55, def: 7,
     expReward: 200, goldReward: 220,
-    isBoss: true, weakTo: 'physical', staggerMax: 250,
+    isBoss: true, weakTo: 'physical', staggerMax: 180,
     phases: [
       { threshold: 0.7, effect: { type: 'regen', amount: 120 } },
       { threshold: 0.4, effect: { type: 'atkUp', amount: 25 } },
@@ -146,10 +146,10 @@ export const ENEMIES = {
 
   aura_captain: {
     id: 'aura_captain', name: 'AURA 기동대장', emoji: '🎖️',
-    maxHp: 625, atk: 81, def: 18,
+    maxHp: 350, atk: 55, def: 9,
     expReward: 160, goldReward: 200,
     itemDrop: { itemId: 'reinforced_suit', chance: 0.5 },
-    isBoss: true, weakTo: 'psychic', staggerMax: 230,
+    isBoss: true, weakTo: 'psychic', staggerMax: 190,
     phases: [
       { threshold: 0.6, effect: { type: 'atkUp', amount: 12 } },
     ],
@@ -163,9 +163,9 @@ export const ENEMIES = {
   },
   nexus_lieutenant: {
     id: 'nexus_lieutenant', name: 'Nexus 부사령관', emoji: '🔫',
-    maxHp: 550, atk: 91, def: 13,
+    maxHp: 300, atk: 58, def: 7,
     expReward: 180, goldReward: 220,
-    isBoss: true, weakTo: 'nature', staggerMax: 210,
+    isBoss: true, weakTo: 'nature', staggerMax: 170,
     pattern: [
       { action: 'attack', weight: 4, hint: '방아쇠 손가락이 미세하게 움직인다...' },
       { action: 'skill', weight: 4, skillName: '연속 사격', skillDmgMult: 0.7, hits: 2, hint: '조준선이 빠르게 흔들리며 여러 각도를 훑는다...' },
@@ -176,9 +176,9 @@ export const ENEMIES = {
   },
   jiyu_boss: {
     id: 'jiyu_boss', name: '지유 (Ji-Yu)', emoji: '🗡️',
-    maxHp: 750, atk: 101, def: 22,
+    maxHp: 420, atk: 65, def: 11,
     expReward: 280, goldReward: 0,
-    isBoss: true, weakTo: 'nature', staggerMax: 260,
+    isBoss: true, weakTo: 'nature', staggerMax: 210,
     pattern: [
       { action: 'attack', weight: 4, hint: '익숙한 눈빛으로 당신의 허점을 찾는다...' },
       { action: 'skill', weight: 4, skillName: '정밀 타격', skillDmgMult: 1.9, hint: '숨을 느리게 내쉬며 한 점에 모든 집중을 쏟는다...' },
@@ -191,9 +191,9 @@ export const ENEMIES = {
   },
   kai_boss: {
     id: 'kai_boss', name: '카이 (Kai)', emoji: '⚡',
-    maxHp: 725, atk: 101, def: 16,
+    maxHp: 400, atk: 65, def: 8,
     expReward: 280, goldReward: 0,
-    isBoss: true, weakTo: 'physical', staggerMax: 240,
+    isBoss: true, weakTo: 'physical', staggerMax: 200,
     pattern: [
       { action: 'attack', weight: 4, hint: '손가락 사이에서 파직파직 소리가 새어 나온다...' },
       { action: 'skill', weight: 4, skillName: '전기 폭발', skillDmgMult: 2.0, hint: '머리카락이 곤두서고 공기가 따갑게 느껴진다...' },
@@ -208,9 +208,9 @@ export const ENEMIES = {
 
   echo: {
     id: 'echo', name: 'Echo (Nexus 수장)', emoji: '🌑',
-    maxHp: 1125, atk: 126, def: 22,
+    maxHp: 550, atk: 80, def: 14,
     expReward: 350, goldReward: 0,
-    isFinalBoss: true, weakTo: 'physical', staggerMax: 300,
+    isFinalBoss: true, weakTo: 'physical', staggerMax: 250,
     phases: [
       { threshold: 0.7, effect: { type: 'regen', amount: 200 } },
       { threshold: 0.4, effect: { type: 'atkUp', amount: 30 } },
@@ -226,9 +226,9 @@ export const ENEMIES = {
   },
   director_kang: {
     id: 'director_kang', name: '강 국장 (AURA 총책임자)', emoji: '👔',
-    maxHp: 1000, atk: 109, def: 28,
+    maxHp: 500, atk: 72, def: 18,
     expReward: 350, goldReward: 0,
-    isFinalBoss: true, weakTo: 'psychic', staggerMax: 280,
+    isFinalBoss: true, weakTo: 'psychic', staggerMax: 230,
     phases: [
       { threshold: 0.6, effect: { type: 'regen', amount: 160 } },
       { threshold: 0.4, effect: { type: 'atkUp', amount: 20 } },

@@ -388,11 +388,7 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
       continue;
     }
 
-    const action = pickAction(e.pattern);
-
-    if (action.hint) {
-      log.push(`💭 ${e.name}: "${action.hint}"`);
-    }
+    const action = (combat.nextEnemyActions ?? {})[e.id] ?? pickAction(e.pattern);
 
     if (action.action === 'attack') {
       const atkVal = calcEnemyAtk(newEnemies[i], newEnemies[i].effects);

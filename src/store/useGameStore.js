@@ -141,7 +141,7 @@ export const useGameStore = create((set, get) => ({
     if (!lin) return;
     const commonSkill = lin.commonSkillId;
     const diff = getDifficulty(get().difficulty);
-    const initHp = diff.startHp;
+    const initHp = Math.max(10, Math.round(lin.initHp * (diff.hpMult ?? 1.0)));
     const chargeBonus = diff.chargeBonus;
     set({
       lineage: lineageId,
