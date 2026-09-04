@@ -10,6 +10,45 @@ import {
   playerDefend, useItemInCombat, enemyTurn,
 } from '../engine/combat.js';
 import { clampHp, STAT_MAX } from '../engine/stats.js';
+import { DIFFICULTIES, getDifficulty } from '../data/difficulties.js';
+
+/* ── localStorage 키 */
+const PROGRESS_KEY = 'aura_progress';
+const RUN_KEY = 'aura_run';
+
+function loadProgress() {
+  try {
+    const raw = localStorage.getItem(PROGRESS_KEY);
+    return raw ? JSON.parse(raw) : { unlockedDifficulties: [0], clearedDifficulties: {} };
+  } catch { return { unlockedDifficulties: [0], clearedDifficulties: {} }; }
+}
+
+function saveProgress(data) {
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(data)); } catch {}
+}
+
+function saveRun(state) {
+  const fields = ['playerName','lineage','job','stats','hp','maxHp','gold','level',
+    'totalExp','currentNodeId','faction','relations','skills','skillLevels',
+    'skillCharges','inventory','equipment','awakeningSkillId','awakeningDone',
+    'screen','flags','difficulty'];
+  const run = {};
+  fields.forEach(f => { run[f] = state[f]; });
+  try { localStorage.setItem(RUN_KEY, JSON.stringify(run)); } catch {}
+}
+
+function loadRun() {
+  try {
+    const raw = localStorage.getItem(RUN_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function clearRun() {
+  try { localStorage.removeItem(RUN_KEY); } catch {}
+}
+
+export { loadProgress, loadRun, clearRun };
 
 const INITIAL_RELATIONS = { jiyu: 0, kai: 0 };
 
@@ -85,25 +124,33 @@ export const useGameStore = create((set, get) => ({
   /* ── 엔딩 */
   endingType: null,
 
+  /* ── 난이도 */
+  difficulty: 1,
+
   /* ─────────────────────────────────────── */
   /* ACTIONS                                  */
   /* ─────────────────────────────────────── */
 
   setPlayerName: (name) => set({ playerName: name }),
 
+  setDifficulty: (id) => set({ difficulty: id }),
+
   /* 1차: 계열 선택 → 게임 시작 (직업은 Ch2 클리어 후 선택) */
   chooseLineage(lineageId) {
     const lin = LINEAGES[lineageId];
     if (!lin) return;
     const commonSkill = lin.commonSkillId;
+    const diff = getDifficulty(get().difficulty);
+    const initHp = diff.startHp;
+    const chargeBonus = diff.chargeBonus;
     set({
       lineage: lineageId,
       job: null,
       stats: { ...lin.initStats },
-      hp: 100, maxHp: 100,
+      hp: initHp, maxHp: initHp,
       skills: [commonSkill],
       skillLevels: { [commonSkill]: 1 },
-      skillCharges: { [commonSkill]: SKILLS[commonSkill]?.maxCharges ?? 3 },
+      skillCharges: { [commonSkill]: Math.max(1, (SKILLS[commonSkill]?.maxCharges ?? 3) + chargeBonus) },
       screen: 'story',
       currentNodeId: 'ch1_s0',
       faction: 0,
@@ -116,6 +163,7 @@ export const useGameStore = create((set, get) => ({
       expGainedLast: 0,
       levelUpGains: null,
     });
+    saveRun(get());
   },
 
   /* 2차: 직업 선택 → 진행 중인 게임에 적용 후 Ch3 시작 */
@@ -151,7 +199,7 @@ export const useGameStore = create((set, get) => ({
 
   /* 스토리 선택지 */
   makeChoice(choice) {
-    const { stats, relations, faction, flags } = get();
+    const { stats, relations, faction, flags, difficulty } = get();
     const newStats    = applyStatChanges(stats, choice.statChanges);
     const newRelation = applyRelationChanges(relations, choice.relation ?? {});
     const newFaction  = Math.max(-100, Math.min(100, faction + (choice.faction ?? 0)));
@@ -166,6 +214,7 @@ export const useGameStore = create((set, get) => ({
     const nextNode = getNode(choice.next);
     if (!nextNode) return;
 
+    const diff = getDifficulty(difficulty);
     set({
       stats: newStats,
       relations: newRelation,
@@ -173,14 +222,25 @@ export const useGameStore = create((set, get) => ({
       flags: newFlags,
       currentNodeId: choice.next,
       screen: nextNode.type === 'combat' ? 'combat' : nextNode.type,
-      combat: nextNode.type === 'combat' ? initCombat(nextNode.enemies) : null,
+      combat: nextNode.type === 'combat' ? initCombat(nextNode.enemies, diff.enemyMult) : null,
     });
+    saveRun(get());
   },
 
   goToNode(nodeId) {
-    if (nodeId === 'gameover')     { set({ screen: 'gameover' }); return; }
-    if (nodeId === 'ending_aura')  { set({ screen: 'ending', endingType: 'aura' }); return; }
-    if (nodeId === 'ending_nexus') { set({ screen: 'ending', endingType: 'nexus' }); return; }
+    if (nodeId === 'gameover')     { clearRun(); set({ screen: 'gameover' }); return; }
+    if (nodeId === 'ending_aura' || nodeId === 'ending_nexus') {
+      const diff = get().difficulty;
+      const prog = loadProgress();
+      prog.clearedDifficulties[diff] = nodeId === 'ending_aura' ? 'aura' : 'nexus';
+      if (!prog.unlockedDifficulties.includes(diff + 1) && diff + 1 < 5) {
+        prog.unlockedDifficulties.push(diff + 1);
+      }
+      saveProgress(prog);
+      clearRun();
+      set({ screen: 'ending', endingType: nodeId === 'ending_aura' ? 'aura' : 'nexus' });
+      return;
+    }
     if (nodeId === 'job_select')   { set({ screen: 'job_select' }); return; }
     const node = getNode(nodeId);
     if (!node) return;
@@ -194,13 +254,16 @@ export const useGameStore = create((set, get) => ({
         currentNodeId: nodeId,
         screen: 'random_event',
       });
+      saveRun(get());
       return;
     }
+    const diff = getDifficulty(get().difficulty);
     set({
       currentNodeId: nodeId,
       screen: node.type === 'combat' ? 'combat' : node.type,
-      combat: node.type === 'combat' ? initCombat(node.enemies) : null,
+      combat: node.type === 'combat' ? initCombat(node.enemies, diff.enemyMult) : null,
     });
+    saveRun(get());
   },
 
   resolveRandomEvent(choice) {
@@ -290,7 +353,7 @@ export const useGameStore = create((set, get) => ({
 
   /* 전투 승리 + 경험치/레벨업 + 보상 선택 */
   _handleCombatWin(newCombat, newHp, newCharges, newInv) {
-    const { currentNodeId, gold, level, totalExp, lineage, stats, maxHp } = get();
+    const { currentNodeId, gold, level, totalExp, lineage, stats, maxHp, skills, skillLevels, difficulty } = get();
     const node = getNode(currentNodeId);
     const goldGain = node?.goldReward ?? 0;
     const expGain  = newCombat.enemies.reduce((sum, e) => sum + (e.expReward ?? 0), 0);
@@ -325,54 +388,228 @@ export const useGameStore = create((set, get) => ({
       levelUpGains: didLevelUp ? gains : null,
     });
 
-    /* 보상 풀 생성 */
-    const rewardPool = [];
-    if (newHp < newMaxHp * 0.7) {
-      rewardPool.push({ type: 'hp', amount: 60, label: 'HP +60 회복', desc: '전투의 상처를 회복한다' });
+    /* ── 보상 생성 (Slay the Spire 스타일) */
+    const rewardBonus = getDifficulty(difficulty).rewardBonus;
+    function pickGrade() {
+      const r = Math.random() * 100;
+      const legendaryThreshold = 4 * rewardBonus;
+      const epicThreshold = legendaryThreshold + 13 * rewardBonus;
+      const rareThreshold = epicThreshold + 28;
+      if (r < legendaryThreshold) return 'legendary';
+      if (r < epicThreshold) return 'epic';
+      if (r < rareThreshold) return 'rare';
+      return 'common';
     }
-    rewardPool.push({ type: 'stat', stat: 'power',   amount: 2, label: '파워 +2',  desc: '신체 능력이 강화된다' });
-    rewardPool.push({ type: 'stat', stat: 'mental',  amount: 2, label: '정신 +2',  desc: '정신력이 강화된다' });
-    rewardPool.push({ type: 'stat', stat: 'control', amount: 2, label: '제어 +2',  desc: '능력 제어가 정교해진다' });
-    rewardPool.push({ type: 'charges', label: '스킬 재충전', desc: '보유한 모든 스킬 횟수 +1 회복' });
-    rewardPool.push({ type: 'gold', amount: 50, label: '골드 +50', desc: '전투 보상을 획득한다' });
 
-    const shuffled = rewardPool.sort(() => Math.random() - 0.5);
-    const options = shuffled.slice(0, 3);
+    function generateRewardOption(grade) {
+      const typePools = {
+        common:    ['stat', 'charge_restore', 'item', 'maxhp'],
+        rare:      ['stat', 'charge_restore', 'item', 'maxhp', 'skill_upgrade', 'skill'],
+        epic:      ['stat', 'charge_restore', 'item', 'skill_upgrade', 'skill'],
+        legendary: ['stat', 'item', 'skill_upgrade', 'maxhp'],
+      };
+      const types = typePools[grade];
+      const type  = types[Math.floor(Math.random() * types.length)];
+      const statNames = { power: '파워', mental: '정신', control: '제어' };
+
+      if (type === 'stat') {
+        const statList = ['power', 'mental', 'control'];
+        const stat     = statList[Math.floor(Math.random() * statList.length)];
+        const amounts  = { common: 2, rare: 3, epic: 4, legendary: 6 };
+        const amount   = amounts[grade];
+        return { type: 'stat', grade, stat, amount, label: `${statNames[stat]} +${amount}`, desc: '능력치가 영구적으로 상승한다' };
+      }
+
+      if (type === 'maxhp') {
+        const amounts = { common: 15, rare: 25, epic: 40, legendary: 60 };
+        const amount  = amounts[grade];
+        return { type: 'maxhp', grade, amount, label: `최대 HP +${amount}`, desc: '체력 한계가 영구적으로 상승한다' };
+      }
+
+      if (type === 'charge_restore') {
+        if (grade === 'common') return { type: 'charges', grade, amount: 1, label: '스킬 재충전 +1', desc: '모든 스킬 횟수 +1 회복' };
+        if (grade === 'rare')   return { type: 'charges', grade, amount: 2, label: '스킬 재충전 +2', desc: '모든 스킬 횟수 +2 회복' };
+        return { type: 'charges', grade, amount: 99, label: '스킬 완전 회복', desc: '모든 스킬 횟수를 완전히 회복한다' };
+      }
+
+      if (type === 'skill_upgrade') {
+        const upgradeable = skills.filter(id => (skillLevels[id] ?? 1) < 3);
+        if (upgradeable.length === 0) {
+          const stat    = ['power', 'mental', 'control'][Math.floor(Math.random() * 3)];
+          const amounts = { common: 2, rare: 3, epic: 4, legendary: 6 };
+          return { type: 'stat', grade, stat, amount: amounts[grade], label: `${statNames[stat]} +${amounts[grade]}`, desc: '능력치가 영구적으로 상승한다' };
+        }
+        const targetId = upgradeable[Math.floor(Math.random() * upgradeable.length)];
+        return { type: 'skill_upgrade', grade, skillId: targetId, label: '스킬 강화: 레벨 업', desc: '보유 스킬의 레벨이 상승한다' };
+      }
+
+      if (type === 'item') {
+        const pool = Object.values(ITEMS).filter(it => it.grade === grade && it.type === 'consumable');
+        if (pool.length === 0) {
+          return { type: 'charges', grade: 'common', amount: 1, label: '스킬 재충전 +1', desc: '모든 스킬 횟수 +1 회복' };
+        }
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        return { type: 'item', grade, itemId: item.id, label: `${item.emoji} ${item.name}`, desc: item.desc };
+      }
+
+      if (type === 'skill') {
+        const lineageSkills = Object.values(SKILLS).filter(s => s.lineage === lineage);
+        if (lineageSkills.length === 0) {
+          const stat = ['power', 'mental', 'control'][Math.floor(Math.random() * 3)];
+          const amounts = { common: 2, rare: 3, epic: 4, legendary: 6 };
+          const statNames = { power: '파워', mental: '정신', control: '제어' };
+          return { type: 'stat', grade, stat, amount: amounts[grade], label: `${statNames[stat]} +${amounts[grade]}`, desc: '능력치가 영구적으로 상승한다' };
+        }
+        const unowned = lineageSkills.filter(s => !skills.includes(s.id));
+        const upgradeable = lineageSkills.filter(s => skills.includes(s.id) && (skillLevels[s.id] ?? 1) < 3);
+        let targetSkill, isUpgrade;
+        if (grade === 'epic' || grade === 'legendary') {
+          const pool = unowned.length > 0 ? unowned : upgradeable;
+          if (pool.length === 0) return null;
+          targetSkill = pool[Math.floor(Math.random() * pool.length)];
+          isUpgrade = upgradeable.includes(targetSkill);
+        } else {
+          const pool = [...unowned, ...upgradeable];
+          if (pool.length === 0) return null;
+          targetSkill = pool[Math.floor(Math.random() * pool.length)];
+          isUpgrade = skills.includes(targetSkill.id);
+        }
+        if (!targetSkill) return null;
+        const action = isUpgrade ? '레벨 업' : '신규 획득';
+        return {
+          type: 'skill', grade, skillId: targetSkill.id,
+          label: `${targetSkill.emoji} ${targetSkill.name} ${action}`,
+          desc: isUpgrade
+            ? `스킬 레벨이 ${(skillLevels[targetSkill.id] ?? 1) + 1}로 상승한다`
+            : `새 스킬을 습득한다 (현재 스킬과 동일 레벨)`,
+          isUpgrade,
+        };
+      }
+
+      // fallback
+      return { type: 'charges', grade: 'common', amount: 1, label: '스킬 재충전 +1', desc: '모든 스킬 횟수 +1 회복' };
+    }
+
+    /* 3개 옵션 생성 — 같은 type+grade 중복 방지 */
+    const options = [];
+    const seen    = new Set();
+    let attempts  = 0;
+    while (options.length < 3 && attempts < 30) {
+      attempts++;
+      const grade  = pickGrade();
+      let option = generateRewardOption(grade);
+      if (option === null) {
+        // skill 풀이 비었을 때 stat으로 대체
+        const stat = ['power', 'mental', 'control'][Math.floor(Math.random() * 3)];
+        const amounts = { common: 2, rare: 3, epic: 4, legendary: 6 };
+        const statNames = { power: '파워', mental: '정신', control: '제어' };
+        option = { type: 'stat', grade, stat, amount: amounts[grade], label: `${statNames[stat]} +${amounts[grade]}`, desc: '능력치가 영구적으로 상승한다' };
+      }
+      const key    = `${option.type}|${option.grade}|${option.stat ?? option.skillId ?? option.itemId ?? ''}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      options.push(option);
+    }
 
     set({
       combatReward: { options, pendingNode: node?.onWin },
       screen: 'combat_reward',
     });
+    saveRun(get());
   },
 
   chooseCombatReward(option) {
-    const { hp, maxHp, stats, gold, skills, skillCharges, combatReward, levelUpGains } = get();
-    let newHp      = hp;
-    let newStats   = { ...stats };
-    let newGold    = gold;
-    let newCharges = { ...skillCharges };
+    const { hp, maxHp, stats, gold, skills, skillLevels, skillCharges, inventory, combatReward, levelUpGains } = get();
+    let newHp          = hp;
+    let newMaxHp       = maxHp;
+    let newStats       = { ...stats };
+    let newGold        = gold;
+    let newCharges     = { ...skillCharges };
+    let newSkillLevels = { ...skillLevels };
+    let newPlayerSkills = [...skills];
+    let newInv         = [...inventory];
 
-    if (option.type === 'hp') {
-      newHp = Math.min(maxHp, clampHp(hp + option.amount));
-    }
     if (option.type === 'stat') {
       newStats = applyStatChanges(newStats, { [option.stat]: option.amount });
     }
-    if (option.type === 'gold') {
-      newGold = gold + option.amount;
+
+    if (option.type === 'maxhp') {
+      newMaxHp = maxHp + option.amount;
+      newHp    = Math.min(newHp + option.amount, newMaxHp);
     }
+
     if (option.type === 'charges') {
-      skills.forEach(id => {
-        const maxC = SKILLS[id]?.maxCharges ?? 3;
-        newCharges[id] = Math.min(maxC, (newCharges[id] ?? 0) + 1);
-      });
+      if (option.amount === 99) {
+        // 완전 회복
+        skills.forEach(id => {
+          newCharges[id] = SKILLS[id]?.maxCharges ?? 3;
+        });
+      } else {
+        skills.forEach(id => {
+          const maxC = SKILLS[id]?.maxCharges ?? 3;
+          newCharges[id] = Math.min(maxC, (newCharges[id] ?? 0) + option.amount);
+        });
+      }
+    }
+
+    if (option.type === 'skill_upgrade') {
+      const lv = Math.min(3, (skillLevels[option.skillId] ?? 1) + 1);
+      newSkillLevels = { ...skillLevels, [option.skillId]: lv };
+      // 스킬 횟수를 maxCharges로 리셋
+      newCharges[option.skillId] = SKILLS[option.skillId]?.maxCharges ?? 3;
+    }
+
+    if (option.type === 'item') {
+      const itemData = ITEMS[option.itemId];
+      if (itemData) {
+        const idx = newInv.findIndex(i => i.id === option.itemId);
+        if (idx >= 0) {
+          newInv = newInv.map((it, i) => i === idx ? { ...it, qty: it.qty + 1 } : it);
+        } else {
+          newInv = [...newInv, { ...itemData, qty: 1 }];
+        }
+      }
+    }
+
+    if (option.type === 'skill') {
+      const skillId = option.skillId;
+      if (newPlayerSkills.includes(skillId)) {
+        // 레벨 업
+        const curLv = newSkillLevels[skillId] ?? 1;
+        const newLv = Math.min(3, curLv + 1);
+        newSkillLevels = { ...newSkillLevels, [skillId]: newLv };
+        newCharges = { ...newCharges, [skillId]: SKILLS[skillId]?.maxCharges ?? 3 };
+      } else {
+        // 신규 획득 — 보유 스킬 평균 레벨로 지급
+        const avgLv = newPlayerSkills.length > 0
+          ? Math.max(1, Math.round(newPlayerSkills.reduce((sum, id) => sum + (newSkillLevels[id] ?? 1), 0) / newPlayerSkills.length))
+          : 1;
+        newSkillLevels = { ...newSkillLevels, [skillId]: Math.min(3, avgLv) };
+        newCharges = { ...newCharges, [skillId]: SKILLS[skillId]?.maxCharges ?? 3 };
+        newPlayerSkills = [...newPlayerSkills, skillId];
+      }
+    }
+
+    if (option.type === 'gold') {
+      newGold = gold + (option.amount ?? 0);
     }
 
     const nextNode = combatReward?.pendingNode;
-    set({ hp: newHp, stats: newStats, gold: newGold, skillCharges: newCharges, combatReward: null });
+    set({
+      hp: newHp,
+      maxHp: newMaxHp,
+      stats: newStats,
+      gold: newGold,
+      skills: newPlayerSkills,
+      skillCharges: newCharges,
+      skillLevels: newSkillLevels,
+      inventory: newInv,
+      combatReward: null,
+    });
 
     if (levelUpGains) {
       set({ screen: 'levelup' });
+      saveRun(get());
     } else if (nextNode) {
       get().goToNode(nextNode);
     }
@@ -457,8 +694,16 @@ export const useGameStore = create((set, get) => ({
     set({ equipment: { ...equipment, [slot]: item }, inventory: newInv });
   },
 
+  /* ── 이어하기 */
+  continueRun() {
+    const saved = loadRun();
+    if (!saved) return;
+    set({ ...saved, combat: null, combatReward: null, levelUpGains: null });
+  },
+
   /* ── 리셋 */
   resetGame() {
+    clearRun();
     set({
       screen: 'title',
       playerName: '', lineage: null, job: null,
@@ -473,6 +718,7 @@ export const useGameStore = create((set, get) => ({
       awakeningSkillId: null, awakeningDone: false,
       combat: null, combatReward: null, endingType: null,
       currentRandomEvent: null, currentRandomEventNodeId: null,
+      difficulty: 1,
     });
   },
 }));

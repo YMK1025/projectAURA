@@ -1,7 +1,12 @@
+import { useEffect } from 'react';
 import { useGameStore } from '../../store/useGameStore.js';
 
 export default function GameOverScreen() {
   const { resetGame, currentNodeId } = useGameStore();
+
+  useEffect(() => {
+    try { localStorage.removeItem('aura_run'); } catch {}
+  }, []);
 
   return (
     <div style={{

@@ -9,15 +9,22 @@ import { ENEMIES } from '../data/enemies.js';
 /* ────────────────────────────────────────────
    전투 초기화
    ──────────────────────────────────────────── */
-export function initCombat(enemies) {
+export function initCombat(enemies, enemyMult = 1.0) {
   return {
-    enemies: enemies.map(id => ({
-      ...ENEMIES[id],
-      currentHp: ENEMIES[id].maxHp,
-      staggerCurrent: 0,
-      effects: [],
-      phases: (ENEMIES[id].phases ?? []).map(p => ({ ...p, triggered: false })),
-    })),
+    enemies: enemies.map(id => {
+      const e = ENEMIES[id];
+      const scaledHp = Math.round((e.maxHp ?? 100) * enemyMult);
+      const scaledAtk = Math.round((e.atk ?? 20) * enemyMult);
+      return {
+        ...e,
+        maxHp: scaledHp,
+        atk: scaledAtk,
+        currentHp: scaledHp,
+        staggerCurrent: 0,
+        effects: [],
+        phases: (e.phases ?? []).map(p => ({ ...p, triggered: false })),
+      };
+    }),
     playerEffects: [],
     log: [],
     round: 1,
