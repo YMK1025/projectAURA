@@ -6,7 +6,7 @@ export const LINEAGES = {
     flavor: '힘이 곧 법이다',
     commonSkillId: 'smash',
     jobs: ['guardian', 'beast_shifter'],
-    initStats: { power: 18, control: 14, mental: 5 },
+    initStats: { power: 10, control: 8, mental: 3 },
     initHp: 100,
   },
   psychic: {
@@ -15,7 +15,7 @@ export const LINEAGES = {
     flavor: '마음이 현실을 만든다',
     commonSkillId: 'tele_strike',
     jobs: ['clairvoyant', 'dominator'],
-    initStats: { power: 8, control: 18, mental: 22 },
+    initStats: { power: 4, control: 10, mental: 13 },
     initHp: 100,
   },
   nature: {
@@ -24,7 +24,7 @@ export const LINEAGES = {
     flavor: '자연은 통제되지 않는다',
     commonSkillId: 'element_burst',
     jobs: ['pyromancer', 'storm_caller'],
-    initStats: { power: 15, control: 10, mental: 18 },
+    initStats: { power: 8, control: 5, mental: 10 },
     initHp: 100,
   },
 };

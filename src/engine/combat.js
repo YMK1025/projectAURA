@@ -10,25 +10,31 @@ import { ENEMIES } from '../data/enemies.js';
    전투 초기화
    ──────────────────────────────────────────── */
 export function initCombat(enemies, enemyMult = 1.0) {
+  const scaledEnemies = enemies.map(id => {
+    const e = ENEMIES[id];
+    const scaledHp = Math.round((e.maxHp ?? 100) * enemyMult);
+    const scaledAtk = Math.round((e.atk ?? 20) * enemyMult);
+    return {
+      ...e,
+      maxHp: scaledHp,
+      atk: scaledAtk,
+      currentHp: scaledHp,
+      staggerCurrent: 0,
+      effects: [],
+      phases: (e.phases ?? []).map(p => ({ ...p, triggered: false })),
+    };
+  });
+  const nextEnemyActions = {};
+  scaledEnemies.forEach(e => {
+    nextEnemyActions[e.id] = pickAction(e.pattern);
+  });
   return {
-    enemies: enemies.map(id => {
-      const e = ENEMIES[id];
-      const scaledHp = Math.round((e.maxHp ?? 100) * enemyMult);
-      const scaledAtk = Math.round((e.atk ?? 20) * enemyMult);
-      return {
-        ...e,
-        maxHp: scaledHp,
-        atk: scaledAtk,
-        currentHp: scaledHp,
-        staggerCurrent: 0,
-        effects: [],
-        phases: (e.phases ?? []).map(p => ({ ...p, triggered: false })),
-      };
-    }),
+    enemies: scaledEnemies,
     playerEffects: [],
     log: [],
     round: 1,
     phase: 'player',
+    nextEnemyActions,
   };
 }
 
@@ -458,6 +464,12 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
   const newHp = currentHp + hpDelta;
   const phase = newHp <= 0 ? 'lose' : 'player';
 
+  // 다음 플레이어 턴을 위해 생존 적의 다음 행동 미리 선택
+  const nextEnemyActions = {};
+  newEnemies.forEach(e => {
+    if (e.currentHp > 0) nextEnemyActions[e.id] = pickAction(e.pattern);
+  });
+
   return {
     newCombat: {
       ...combat,
@@ -466,6 +478,7 @@ export function enemyTurn(combat, playerStats, equipment, job, currentHp) {
       phase,
       playerEffects: newPlayerEffects,
       round: combat.round + 1,
+      nextEnemyActions,
     },
     hpDelta,
   };

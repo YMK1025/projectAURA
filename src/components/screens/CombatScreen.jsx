@@ -211,6 +211,33 @@ export default function CombatScreen() {
         {combat.log.length === 0 && <span style={{ color: '#444' }}>전투 시작...</span>}
       </div>
 
+      {/* 적 행동 예고 패널 */}
+      {isPlayerTurn && aliveEnemies.length > 0 && combat.nextEnemyActions && (
+        <div style={{
+          background: '#1a0e00', border: '1px solid #b45309',
+          borderRadius: 8, padding: '10px 14px',
+        }}>
+          <div style={{ fontSize: 10, color: '#f59e0b', fontWeight: 700, letterSpacing: 1, marginBottom: 6 }}>
+            ⚠ 적의 움직임
+          </div>
+          {aliveEnemies.map(e => {
+            const next = combat.nextEnemyActions[e.id];
+            if (!next) return null;
+            const isStunned = e.effects?.some(ef => ef.type === 'stun' || ef.type === 'staggered');
+            return (
+              <div key={e.id} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 4 }}>
+                <span style={{ fontSize: 11, color: '#f59e0b', fontWeight: 600, flexShrink: 0 }}>
+                  {e.emoji} {e.name}
+                </span>
+                <span style={{ fontSize: 11, color: isStunned ? '#666' : '#d4a35a', lineHeight: 1.5 }}>
+                  {isStunned ? '행동 불능 상태.' : (next.hint ?? '행동을 준비하고 있다...')}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* 행동 패널 */}
       {isPlayerTurn && aliveEnemies.length > 0 && (
         <div>
